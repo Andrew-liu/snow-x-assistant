@@ -1,8 +1,15 @@
 /* Snow X Assistant
- * 标签主题由 .sxa-badge / #sxa-tip 上的 data-sxa-skin 决定:
- *   signal 信号灯 · neon 霓虹 · candy 糖果 · minimal 原生文字 · terminal 终端 · aurora 极光渐变
- * 每个主题定义流速三档的主色(--sxa-vN-bg)、主色上的文字(--sxa-vN-fg)、直接写在页面底色上的文字色(--sxa-vN-ink)。
+ * 标签主题由 .sxa-badge / #sxa-tip 上的 data-sxa-skin 决定,DOM 结构对所有主题一致,外观完全由这里决定:
+ *   signal  信号灯   实心彩色胶囊
+ *   shield  徽章     shields.io 式左右两段
+ *   sticker 贴纸     粗描边 + 硬投影 + 轻微倾斜
+ *   terminal 终端    一整条命令行,竖线分隔
+ *   heatbar 热度条   流速用 5 格进度条,其余纯文字
+ *   neon    霓虹     发光描边
+ *   minimal 原生文字 无框,只上色
+ *   aurora  极光     渐变填充 + 呼吸光晕
  * 浅色 / 深色由 html[data-sxa-theme] 切换。
+ * 流速四档:<1k 普通(灰、无图标);1k / 5k / 1w 起三档前置 🚀,越往上越亮。
  */
 
 :root {
@@ -11,7 +18,7 @@
   --sxa-line: rgba(83, 100, 113, 0.24);
   --sxa-wash: rgba(15, 20, 25, 0.035);
   --sxa-card: #ffffff;
-  --sxa-rail: #e6ecf0;
+  --sxa-rail: #e3e8ec;
   --sxa-calm: #00a36c;
   --sxa-rise: #e66a00;
   --sxa-hot: #f0002d;
@@ -20,13 +27,11 @@
   --sxa-mono: ui-monospace, "SF Mono", "Cascadia Mono", "JetBrains Mono", Consolas, monospace;
   --sxa-sans: TwitterChirp, -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
 
-  /* 粉丝描边胶囊 */
   --sxa-f-bd: rgba(15, 20, 25, 0.55);
   --sxa-f-bg: #ffffff;
   --sxa-f-ink: #0f1419;
   --sxa-f-unit: #3e4a55;
 
-  /* 质量标签:文字 / 底 / 描边 */
   --sxa-t-rel: #0a5fa3;  --sxa-t-rel-bg: #e1f1fd;  --sxa-t-rel-bd: #8ccaf7;
   --sxa-t-hi: #006b47;   --sxa-t-hi-bg: #dcf7ec;   --sxa-t-hi-bd: #7fdcb6;
   --sxa-t-warn: #9a4400; --sxa-t-warn-bg: #fff1db; --sxa-t-warn-bd: #f5bd6e;
@@ -38,7 +43,7 @@ html[data-sxa-theme="dark"] {
   --sxa-line: rgba(139, 152, 165, 0.3);
   --sxa-wash: rgba(255, 255, 255, 0.04);
   --sxa-card: #16181c;
-  --sxa-rail: #2f3336;
+  --sxa-rail: #333a40;
   --sxa-calm: #00d68f;
   --sxa-rise: #ff9a1f;
   --sxa-hot: #ff2e55;
@@ -55,74 +60,92 @@ html[data-sxa-theme="dark"] {
   --sxa-t-n: #d0d7dd;    --sxa-t-n-bg: rgba(255, 255, 255, 0.08);  --sxa-t-n-bd: rgba(255, 255, 255, 0.26);
 }
 
-/* ---------- 流速三档配色(按主题) ---------- */
-
-/* 信号灯(默认):高亮荧光绿 / 亮橙 / 亮红 */
-[data-sxa-skin] {
-  --sxa-v0-bg: #14d38a; --sxa-v0-fg: #00321d; --sxa-v0-ink: #00a86b;
-  --sxa-v1-bg: #ffa000; --sxa-v1-fg: #2e1700; --sxa-v1-ink: #e07800;
-  --sxa-v2-bg: #ff1f4f; --sxa-v2-fg: #ffffff; --sxa-v2-ink: #f0002d;
-  --sxa-v2-glow: rgba(255, 31, 79, 0.55);
+/* ======================================================================
+ * 流速四档配色:v0 普通(灰,无图标) · v1 升温 · v2 热门 · v3 爆款(后三档带 🚀,越往上越亮)
+ * vN-bg 主色 · vN-fg 主色上的文字 · vN-ink 直接写在页面底色上的文字色 · vN-glow 光晕
+ * 选择器统一写成 html[data-sxa-theme] [..] 保证特异性一致,后写的覆盖先写的
+ * ====================================================================== */
+html[data-sxa-theme] [data-sxa-skin], [data-sxa-skin] {
+  --sxa-v0-bg: #eef1f3; --sxa-v0-fg: #536471; --sxa-v0-ink: #6b7884;
+  --sxa-v1-bg: #14d38a; --sxa-v1-fg: #00321d; --sxa-v1-ink: #00a86b;
+  --sxa-v2-bg: #ffa000; --sxa-v2-fg: #2e1700; --sxa-v2-ink: #e07800;
+  --sxa-v3-bg: #ff1f4f; --sxa-v3-fg: #ffffff; --sxa-v3-ink: #f0002d;
+  --sxa-v1-glow: rgba(20, 211, 138, 0.35);
+  --sxa-v2-glow: rgba(255, 160, 0, 0.55);
+  --sxa-v3-glow: rgba(255, 31, 79, 0.65);
 }
-html[data-sxa-theme="dark"] [data-sxa-skin="signal"] {
-  --sxa-v0-bg: #1ef29c; --sxa-v0-ink: #3cf5a9;
-  --sxa-v1-bg: #ffb020; --sxa-v1-ink: #ffbb3d;
-  --sxa-v2-bg: #ff3360; --sxa-v2-ink: #ff5577;
-  --sxa-v2-glow: rgba(255, 51, 96, 0.7);
+html[data-sxa-theme="dark"] [data-sxa-skin] {
+  --sxa-v0-bg: rgba(255, 255, 255, 0.1); --sxa-v0-fg: #aab4bd; --sxa-v0-ink: #8b98a5;
+  --sxa-v1-bg: #1ef29c; --sxa-v1-ink: #3cf5a9;
+  --sxa-v2-bg: #ffb020; --sxa-v2-ink: #ffbb3d;
+  --sxa-v3-bg: #ff3360; --sxa-v3-ink: #ff5577;
+  --sxa-v1-glow: rgba(30, 242, 156, 0.4);
+  --sxa-v2-glow: rgba(255, 176, 32, 0.6);
+  --sxa-v3-glow: rgba(255, 51, 96, 0.8);
 }
-
-/* 霓虹:青 / 柠檬黄 / 洋红 */
-[data-sxa-skin="neon"] {
-  --sxa-v0-bg: #00c8f0; --sxa-v0-fg: #002a33; --sxa-v0-ink: #0086a8;
-  --sxa-v1-bg: #f5c800; --sxa-v1-fg: #2b2300; --sxa-v1-ink: #8f7200;
-  --sxa-v2-bg: #ff1fd2; --sxa-v2-fg: #ffffff; --sxa-v2-ink: #c400a0;
-  --sxa-v2-glow: rgba(255, 31, 210, 0.55);
+html[data-sxa-theme] [data-sxa-skin="shield"] {
+  --sxa-v0-bg: #9f9f9f; --sxa-v0-fg: #ffffff; --sxa-v0-ink: #8a8a8a;
+  --sxa-v1-bg: #3fc93a; --sxa-v1-fg: #ffffff; --sxa-v1-ink: #2fa82b;
+  --sxa-v2-bg: #fe7d37; --sxa-v2-fg: #ffffff; --sxa-v2-ink: #e8641c;
+  --sxa-v3-bg: #ff3b30; --sxa-v3-fg: #ffffff; --sxa-v3-ink: #ff3b30;
+}
+html[data-sxa-theme] [data-sxa-skin="sticker"] {
+  --sxa-v0-bg: #ffffff; --sxa-v0-fg: #536471; --sxa-v0-ink: #536471;
+  --sxa-v1-bg: #5cf28a; --sxa-v1-fg: #0f1419; --sxa-v1-ink: #12b04f;
+  --sxa-v2-bg: #ffb020; --sxa-v2-fg: #0f1419; --sxa-v2-ink: #e08a00;
+  --sxa-v3-bg: #ff3d6e; --sxa-v3-fg: #0f1419; --sxa-v3-ink: #ff3d6e;
+}
+html[data-sxa-theme] [data-sxa-skin="terminal"] {
+  --sxa-v0-bg: #30363d; --sxa-v0-fg: #c9d1d9; --sxa-v0-ink: #8b949e;
+  --sxa-v1-bg: #3fe07a; --sxa-v1-fg: #04140a; --sxa-v1-ink: #3fe07a;
+  --sxa-v2-bg: #ffc53d; --sxa-v2-fg: #1a1200; --sxa-v2-ink: #ffc53d;
+  --sxa-v3-bg: #ff5f56; --sxa-v3-fg: #1a0302; --sxa-v3-ink: #ff6b62;
+  --sxa-v2-glow: rgba(255, 197, 61, 0.55);
+  --sxa-v3-glow: rgba(255, 95, 86, 0.8);
+}
+html[data-sxa-theme] [data-sxa-skin="heatbar"] {
+  --sxa-v0-bg: #8b98a5; --sxa-v0-fg: #ffffff; --sxa-v0-ink: var(--sxa-mute);
+  --sxa-v1-bg: #1ed67a; --sxa-v1-fg: #ffffff; --sxa-v1-ink: #00a85a;
+  --sxa-v2-bg: #ff9d00; --sxa-v2-fg: #ffffff; --sxa-v2-ink: #e67e00;
+  --sxa-v3-bg: #ff2d55; --sxa-v3-fg: #ffffff; --sxa-v3-ink: #ff1744;
+}
+html[data-sxa-theme="dark"] [data-sxa-skin="heatbar"] { --sxa-v1-ink: #2ee59d; --sxa-v2-ink: #ffb020; --sxa-v3-ink: #ff4d6d; }
+html[data-sxa-theme] [data-sxa-skin="neon"] {
+  --sxa-v0-bg: #8b98a5; --sxa-v0-fg: #0f1419; --sxa-v0-ink: #536471;
+  --sxa-v1-bg: #00c8f0; --sxa-v1-fg: #002a33; --sxa-v1-ink: #0086a8;
+  --sxa-v2-bg: #e8bd00; --sxa-v2-fg: #2b2300; --sxa-v2-ink: #8f7200;
+  --sxa-v3-bg: #ff1fd2; --sxa-v3-fg: #ffffff; --sxa-v3-ink: #c400a0;
+  --sxa-v3-glow: rgba(255, 31, 210, 0.6);
 }
 html[data-sxa-theme="dark"] [data-sxa-skin="neon"] {
-  --sxa-v0-bg: #00e5ff; --sxa-v0-ink: #5cf0ff;
-  --sxa-v1-bg: #ffe600; --sxa-v1-ink: #fff05a;
-  --sxa-v2-bg: #ff2bd6; --sxa-v2-ink: #ff6fe4;
-  --sxa-v2-glow: rgba(255, 43, 214, 0.75);
+  --sxa-v0-bg: #5b6670; --sxa-v0-ink: #8b98a5;
+  --sxa-v1-bg: #00e5ff; --sxa-v1-ink: #5cf0ff;
+  --sxa-v2-bg: #ffe600; --sxa-v2-ink: #fff05a;
+  --sxa-v3-bg: #ff2bd6; --sxa-v3-ink: #ff6fe4;
+  --sxa-v3-glow: rgba(255, 43, 214, 0.8);
+}
+html[data-sxa-theme] [data-sxa-skin="minimal"] {
+  --sxa-v0-bg: #8b98a5; --sxa-v0-fg: #ffffff; --sxa-v0-ink: var(--sxa-mute);
+  --sxa-v1-bg: #00b374; --sxa-v1-fg: #ffffff; --sxa-v1-ink: #00a86b;
+  --sxa-v2-bg: #f57c00; --sxa-v2-fg: #ffffff; --sxa-v2-ink: #f07000;
+  --sxa-v3-bg: #ff1744; --sxa-v3-fg: #ffffff; --sxa-v3-ink: #ff1744;
+}
+html[data-sxa-theme="dark"] [data-sxa-skin="minimal"] { --sxa-v1-ink: #2ee59d; --sxa-v2-ink: #ffb020; --sxa-v3-ink: #ff4d6d; }
+html[data-sxa-theme] [data-sxa-skin="aurora"] {
+  --sxa-v0-bg: #8b98a5; --sxa-v0-fg: #ffffff; --sxa-v0-ink: #6b7884;
+  --sxa-v1-bg: #00b4ff; --sxa-v1-fg: #ffffff; --sxa-v1-ink: #0090dd;
+  --sxa-v2-bg: #ff8a00; --sxa-v2-fg: #ffffff; --sxa-v2-ink: #e86f00;
+  --sxa-v3-bg: #ff2d7a; --sxa-v3-fg: #ffffff; --sxa-v3-ink: #f0186a;
+  --sxa-v3-glow: rgba(255, 45, 122, 0.65);
+  --sxa-g0: linear-gradient(135deg, #a3aeb8, #6b7884);
+  --sxa-g1: linear-gradient(135deg, #00e0ff, #2f6bff);
+  --sxa-g2: linear-gradient(135deg, #ffcc00, #ff5e00);
+  --sxa-g3: linear-gradient(135deg, #ff0080, #ff8c00);
 }
 
-/* 糖果:明亮的马卡龙色块 */
-[data-sxa-skin="candy"] {
-  --sxa-v0-bg: #5ee8a8; --sxa-v0-fg: #003d22; --sxa-v0-ink: #00995a;
-  --sxa-v1-bg: #ffc04d; --sxa-v1-fg: #4a2600; --sxa-v1-ink: #d17a00;
-  --sxa-v2-bg: #ff5c8d; --sxa-v2-fg: #ffffff; --sxa-v2-ink: #f0306e;
-  --sxa-v2-glow: rgba(255, 92, 141, 0.5);
-}
-
-/* 原生文字:无边框,直接用亮色文字 */
-[data-sxa-skin="minimal"] {
-  --sxa-v0-bg: #00b374; --sxa-v0-fg: #ffffff; --sxa-v0-ink: #00a86b;
-  --sxa-v1-bg: #f57c00; --sxa-v1-fg: #ffffff; --sxa-v1-ink: #f07000;
-  --sxa-v2-bg: #ff1744; --sxa-v2-fg: #ffffff; --sxa-v2-ink: #ff1744;
-}
-html[data-sxa-theme="dark"] [data-sxa-skin="minimal"] {
-  --sxa-v0-ink: #2ee59d; --sxa-v1-ink: #ffb020; --sxa-v2-ink: #ff4d6d;
-}
-
-/* 终端:深色块 + 等宽 + 亮色字 */
-[data-sxa-skin="terminal"] {
-  --sxa-v0-bg: #3fe07a; --sxa-v0-fg: #04140a; --sxa-v0-ink: #3fe07a;
-  --sxa-v1-bg: #ffc53d; --sxa-v1-fg: #1a1200; --sxa-v1-ink: #ffc53d;
-  --sxa-v2-bg: #ff5f56; --sxa-v2-fg: #1a0302; --sxa-v2-ink: #ff6b62;
-  --sxa-v2-glow: rgba(255, 95, 86, 0.55);
-}
-
-/* 极光渐变:渐变填充,爆款带呼吸光晕 */
-[data-sxa-skin="aurora"] {
-  --sxa-v0-bg: #00b4ff; --sxa-v0-fg: #ffffff; --sxa-v0-ink: #0090dd;
-  --sxa-v1-bg: #ff8a00; --sxa-v1-fg: #ffffff; --sxa-v1-ink: #e86f00;
-  --sxa-v2-bg: #ff2d7a; --sxa-v2-fg: #ffffff; --sxa-v2-ink: #f0186a;
-  --sxa-v2-glow: rgba(255, 45, 122, 0.6);
-  --sxa-g0: linear-gradient(135deg, #00e0ff, #2f6bff);
-  --sxa-g1: linear-gradient(135deg, #ffcc00, #ff5e00);
-  --sxa-g2: linear-gradient(135deg, #ff0080, #ff8c00);
-}
-
-/* ---------- 标签基础结构 ---------- */
+/* ======================================================================
+ * 公共结构(默认即信号灯)
+ * ====================================================================== */
 .sxa-badge {
   display: inline-flex;
   align-items: center;
@@ -147,7 +170,6 @@ html[data-sxa-theme="dark"] [data-sxa-skin="minimal"] {
   border: 1px solid transparent;
   border-radius: 999px;
 }
-
 .sxa-n {
   font-family: var(--sxa-mono);
   font-weight: 800;
@@ -156,7 +178,6 @@ html[data-sxa-theme="dark"] [data-sxa-skin="minimal"] {
 }
 .sxa-u { font-size: 10.5px; font-weight: 600; }
 
-/* 粉丝 / 比率 */
 .sxa-f, .sxa-r { border: 1.5px solid var(--sxa-f-bd); background: var(--sxa-f-bg); color: var(--sxa-f-ink); }
 .sxa-f .sxa-u, .sxa-r .sxa-u { color: var(--sxa-f-unit); }
 .sxa-dot { width: 7px; height: 7px; margin-right: 1px; border-radius: 50%; background: var(--sxa-tier, var(--sxa-f-unit)); }
@@ -165,12 +186,10 @@ html[data-sxa-theme="dark"] [data-sxa-skin="minimal"] {
 .sxa-f[data-tier="3"] { --sxa-tier: #f91880; }
 .sxa-f[data-tier="4"] { --sxa-tier: #ff7a00; }
 
-/* 流速:每档把主题色收进 --lv 系列变量,各主题只写结构 */
-.sxa-ic { width: 12px; height: 12px; flex: none; }
-.sxa-ic.big { width: 18px; height: 18px; }
-.sxa-v[data-lv="0"] { --lv: var(--sxa-v0-bg); --lv-fg: var(--sxa-v0-fg); --lv-ink: var(--sxa-v0-ink); --lv-g: var(--sxa-g0); }
-.sxa-v[data-lv="1"] { --lv: var(--sxa-v1-bg); --lv-fg: var(--sxa-v1-fg); --lv-ink: var(--sxa-v1-ink); --lv-g: var(--sxa-g1); }
-.sxa-v[data-lv="2"] { --lv: var(--sxa-v2-bg); --lv-fg: var(--sxa-v2-fg); --lv-ink: var(--sxa-v2-ink); --lv-g: var(--sxa-g2); }
+.sxa-v[data-lv="0"] { --lv: var(--sxa-v0-bg); --lv-fg: var(--sxa-v0-fg); --lv-ink: var(--sxa-v0-ink); --lv-g: var(--sxa-g0); --lv-glow: transparent; --lv-w: 7px; }
+.sxa-v[data-lv="1"] { --lv: var(--sxa-v1-bg); --lv-fg: var(--sxa-v1-fg); --lv-ink: var(--sxa-v1-ink); --lv-g: var(--sxa-g1); --lv-glow: var(--sxa-v1-glow); --lv-w: 14px; }
+.sxa-v[data-lv="2"] { --lv: var(--sxa-v2-bg); --lv-fg: var(--sxa-v2-fg); --lv-ink: var(--sxa-v2-ink); --lv-g: var(--sxa-g2); --lv-glow: var(--sxa-v2-glow); --lv-w: 28px; }
+.sxa-v[data-lv="3"] { --lv: var(--sxa-v3-bg); --lv-fg: var(--sxa-v3-fg); --lv-ink: var(--sxa-v3-ink); --lv-g: var(--sxa-g3); --lv-glow: var(--sxa-v3-glow); --lv-w: 35px; }
 .sxa-v {
   height: 21px;
   padding: 0 8px 0 7px;
@@ -179,102 +198,209 @@ html[data-sxa-theme="dark"] [data-sxa-skin="minimal"] {
   color: var(--lv-fg);
 }
 .sxa-v .sxa-u { opacity: 0.85; }
-.sxa-v[data-lv="1"] { box-shadow: 0 1px 6px color-mix(in srgb, var(--lv) 45%, transparent); }
-.sxa-v[data-lv="2"] {
-  box-shadow: 0 0 0 2px color-mix(in srgb, var(--lv) 30%, transparent), 0 2px 12px var(--sxa-v2-glow);
-}
+/* 普通档:最朴素,不抢眼 */
+.sxa-v[data-lv="0"] { font-size: 12px; }
+.sxa-v[data-lv="0"] .sxa-n { font-weight: 700; }
+/* 升温 → 热门 → 爆款:光晕逐级增强 */
+.sxa-v[data-lv="1"] { box-shadow: 0 1px 4px var(--lv-glow); }
+.sxa-v[data-lv="2"] { box-shadow: 0 0 0 1.5px color-mix(in srgb, var(--lv) 28%, transparent), 0 2px 9px var(--lv-glow); }
+.sxa-v[data-lv="3"] { box-shadow: 0 0 0 2px color-mix(in srgb, var(--lv) 38%, transparent), 0 2px 16px var(--lv-glow); }
 
-/* 质量标签 */
+/* 🚀 前缀:彩色 emoji,与数字等高 */
+.sxa-rk {
+  display: inline-block;
+  font-family: "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif;
+  font-size: 12.5px;
+  line-height: 1;
+  font-weight: 400;
+  text-shadow: none;
+}
+.sxa-rk.big { font-size: 18px; }
+
 .sxa-tag { height: 19px; padding: 0 7px; font-size: 11.5px; font-weight: 700; }
 .sxa-tag.rel { color: var(--sxa-t-rel); background: var(--sxa-t-rel-bg); border-color: var(--sxa-t-rel-bd); }
 .sxa-tag.hi { color: var(--sxa-t-hi); background: var(--sxa-t-hi-bg); border-color: var(--sxa-t-hi-bd); }
 .sxa-tag.warn { color: var(--sxa-t-warn); background: var(--sxa-t-warn-bg); border-color: var(--sxa-t-warn-bd); }
 .sxa-tag.n { color: var(--sxa-t-n); background: var(--sxa-t-n-bg); border-color: var(--sxa-t-n-bd); }
 
-/* ---------- 主题结构差异 ---------- */
-
-/* 霓虹:描边发光,底色只是一层淡色 */
-.sxa-badge[data-sxa-skin="neon"] .sxa-p { border-radius: 6px; }
-.sxa-badge[data-sxa-skin="neon"] .sxa-v {
-  border: 1.5px solid var(--lv);
-  background: color-mix(in srgb, var(--lv) 14%, transparent);
-  color: var(--lv-ink);
-  box-shadow: 0 0 8px color-mix(in srgb, var(--lv) 55%, transparent), inset 0 0 6px color-mix(in srgb, var(--lv) 25%, transparent);
+/* ======================================================================
+ * 徽章 shield:左灰标签 + 右彩色数值,方角,Verdana
+ * ====================================================================== */
+.sxa-badge[data-sxa-skin="shield"] { gap: 4px; font: 700 11px/1 Verdana, "DejaVu Sans", "Microsoft YaHei", sans-serif; }
+.sxa-badge[data-sxa-skin="shield"] .sxa-p {
+  height: 20px; padding: 0 6px 0 0; gap: 3px; border: 0; border-radius: 3px; overflow: hidden;
+  color: #fff; text-shadow: 0 1px 0 rgba(1, 1, 1, 0.3); box-shadow: none;
 }
-html[data-sxa-theme="dark"] .sxa-badge[data-sxa-skin="neon"] .sxa-v { text-shadow: 0 0 6px color-mix(in srgb, var(--lv) 80%, transparent); }
-.sxa-badge[data-sxa-skin="neon"] .sxa-v[data-lv="2"] {
-  box-shadow: 0 0 12px var(--sxa-v2-glow), 0 0 2px var(--lv), inset 0 0 8px color-mix(in srgb, var(--lv) 35%, transparent);
+.sxa-badge[data-sxa-skin="shield"] .sxa-p::before {
+  align-self: stretch; display: flex; align-items: center; margin-right: 3px; padding: 0 6px;
+  font-weight: 400; color: #fff; background: #555;
 }
-.sxa-badge[data-sxa-skin="neon"] .sxa-f,
-.sxa-badge[data-sxa-skin="neon"] .sxa-r { background: transparent; }
-.sxa-badge[data-sxa-skin="neon"] .sxa-tag { background: transparent; }
+.sxa-badge[data-sxa-skin="shield"] .sxa-n { font-family: inherit; font-weight: 700; letter-spacing: 0; }
+.sxa-badge[data-sxa-skin="shield"] .sxa-dot,
+.sxa-badge[data-sxa-skin="shield"] .sxa-u { display: none; }
+.sxa-badge[data-sxa-skin="shield"] .sxa-f { background: var(--sxa-tier, #007ec6); }
+.sxa-badge[data-sxa-skin="shield"] .sxa-f::before { content: "粉丝"; }
+.sxa-badge[data-sxa-skin="shield"] .sxa-r { background: #8a63d2; }
+.sxa-badge[data-sxa-skin="shield"] .sxa-r::before { content: "粉/关"; }
+.sxa-badge[data-sxa-skin="shield"] .sxa-v { background: var(--lv); }
+.sxa-badge[data-sxa-skin="shield"] .sxa-v::before { content: "流速"; }
+.sxa-badge[data-sxa-skin="shield"] .sxa-v[data-lv="2"] { box-shadow: 0 0 6px var(--lv-glow); }
+.sxa-badge[data-sxa-skin="shield"] .sxa-v[data-lv="3"] { box-shadow: 0 0 0 1.5px color-mix(in srgb, var(--lv) 40%, transparent), 0 0 12px var(--lv-glow); }
+.sxa-badge[data-sxa-skin="shield"] .sxa-v .sxa-u { display: inline; opacity: 0.9; font-size: 10px; }
+.sxa-badge[data-sxa-skin="shield"] .sxa-tag { padding: 0 6px; font-weight: 700; }
+.sxa-badge[data-sxa-skin="shield"] .sxa-tag.rel { background: #007ec6; }
+.sxa-badge[data-sxa-skin="shield"] .sxa-tag.hi { background: #3fc93a; }
+.sxa-badge[data-sxa-skin="shield"] .sxa-tag.warn { background: #dfb317; }
+.sxa-badge[data-sxa-skin="shield"] .sxa-tag.n { background: #9f9f9f; }
 
-/* 糖果:无描边方圆角色块 */
-.sxa-badge[data-sxa-skin="candy"] .sxa-p { border-color: transparent; border-radius: 7px; }
-.sxa-badge[data-sxa-skin="candy"] .sxa-f,
-.sxa-badge[data-sxa-skin="candy"] .sxa-r { background: #ece9ff; color: #3b2fa0; }
-.sxa-badge[data-sxa-skin="candy"] .sxa-f .sxa-u,
-.sxa-badge[data-sxa-skin="candy"] .sxa-r .sxa-u { color: #6a5fc8; }
-html[data-sxa-theme="dark"] .sxa-badge[data-sxa-skin="candy"] .sxa-f,
-html[data-sxa-theme="dark"] .sxa-badge[data-sxa-skin="candy"] .sxa-r { background: #c9c1ff; color: #1f1666; }
-html[data-sxa-theme="dark"] .sxa-badge[data-sxa-skin="candy"] .sxa-f .sxa-u,
-html[data-sxa-theme="dark"] .sxa-badge[data-sxa-skin="candy"] .sxa-r .sxa-u { color: #3d3399; }
-.sxa-badge[data-sxa-skin="candy"] .sxa-v { box-shadow: 0 2px 0 color-mix(in srgb, var(--lv) 55%, #000 10%); }
-.sxa-badge[data-sxa-skin="candy"] .sxa-v[data-lv="2"] { box-shadow: 0 2px 0 #c2185b, 0 3px 12px var(--sxa-v2-glow); }
-
-/* 原生文字:去掉所有外框,用 · 分隔,流速只上色加粗 */
-.sxa-badge[data-sxa-skin="minimal"] { gap: 0; }
-.sxa-badge[data-sxa-skin="minimal"] .sxa-p {
-  height: auto; padding: 0; border: 0; border-radius: 0; background: none; box-shadow: none;
+/* ======================================================================
+ * 贴纸 sticker:粗黑描边、硬投影、交替倾斜
+ * ====================================================================== */
+.sxa-badge[data-sxa-skin="sticker"] { gap: 6px; padding: 2px 2px 3px 0; }
+.sxa-badge[data-sxa-skin="sticker"] .sxa-p {
+  height: 21px; padding: 0 7px; border: 2px solid #0f1419; border-radius: 5px;
+  color: #0f1419; background: #fff; box-shadow: 2px 2px 0 #0f1419; font-weight: 800;
 }
-.sxa-badge[data-sxa-skin="minimal"] .sxa-p + .sxa-p::before {
-  content: "·"; margin: 0 6px; color: var(--sxa-mute); font-weight: 700;
-}
-.sxa-badge[data-sxa-skin="minimal"] .sxa-f,
-.sxa-badge[data-sxa-skin="minimal"] .sxa-r { color: var(--sxa-ink); }
-.sxa-badge[data-sxa-skin="minimal"] .sxa-v { color: var(--lv-ink); font-size: 13px; }
-.sxa-badge[data-sxa-skin="minimal"] .sxa-v .sxa-ic { width: 13px; height: 13px; }
-.sxa-badge[data-sxa-skin="minimal"] .sxa-v[data-lv="2"] { text-shadow: 0 0 10px var(--sxa-v2-glow, transparent); }
-.sxa-badge[data-sxa-skin="minimal"] .sxa-tag { font-size: 12px; }
+html[data-sxa-theme="dark"] .sxa-badge[data-sxa-skin="sticker"] .sxa-p { box-shadow: 2px 2px 0 rgba(255, 255, 255, 0.85); }
+.sxa-badge[data-sxa-skin="sticker"] .sxa-p:nth-child(odd) { transform: rotate(-2deg); }
+.sxa-badge[data-sxa-skin="sticker"] .sxa-p:nth-child(even) { transform: rotate(1.5deg); }
+.sxa-badge[data-sxa-skin="sticker"] .sxa-u { color: inherit; opacity: 0.75; }
+.sxa-badge[data-sxa-skin="sticker"] .sxa-dot { border: 1.5px solid #0f1419; width: 8px; height: 8px; }
+.sxa-badge[data-sxa-skin="sticker"] .sxa-f { background: #ffe14d; }
+.sxa-badge[data-sxa-skin="sticker"] .sxa-r { background: #b8f0ff; }
+.sxa-badge[data-sxa-skin="sticker"] .sxa-v { background: var(--lv); }
+.sxa-badge[data-sxa-skin="sticker"] .sxa-v[data-lv="0"] { border-style: dashed; box-shadow: none; }
+.sxa-badge[data-sxa-skin="sticker"] .sxa-v[data-lv="2"] { box-shadow: 2px 2px 0 #0f1419, 0 0 8px var(--lv-glow); }
+.sxa-badge[data-sxa-skin="sticker"] .sxa-v[data-lv="3"] { transform: rotate(-3deg) scale(1.06); box-shadow: 2px 2px 0 #0f1419, 0 0 14px var(--lv-glow); }
+.sxa-badge[data-sxa-skin="sticker"] .sxa-tag.rel { background: #8fd3ff; }
+.sxa-badge[data-sxa-skin="sticker"] .sxa-tag.hi { background: #a6f5c4; }
+.sxa-badge[data-sxa-skin="sticker"] .sxa-tag.warn { background: #ffd08a; }
+.sxa-badge[data-sxa-skin="sticker"] .sxa-tag.n { background: #e8e8e8; }
 
-/* 终端:黑色方块,全部等宽 */
-.sxa-badge[data-sxa-skin="terminal"] { font-family: var(--sxa-mono); }
+/* ======================================================================
+ * 终端 terminal:整条黑色命令行,等宽,竖线分隔
+ * ====================================================================== */
+.sxa-badge[data-sxa-skin="terminal"] {
+  gap: 0; height: 22px; padding: 0 9px 0 8px; box-sizing: border-box;
+  border: 1px solid #30363d; border-radius: 4px; background: #0d1117; color: #c9d1d9;
+  font: 600 11.5px/1 var(--sxa-mono);
+}
+.sxa-badge[data-sxa-skin="terminal"]::before { content: "❯"; margin-right: 7px; color: #3fe07a; font-weight: 800; }
 .sxa-badge[data-sxa-skin="terminal"] .sxa-p {
-  border-radius: 3px; border: 1px solid #30363d; background: #0d1117; color: #c9d1d9; box-shadow: none;
+  height: auto; padding: 0; gap: 3px; border: 0; border-radius: 0; background: none; box-shadow: none; color: inherit;
 }
-.sxa-badge[data-sxa-skin="terminal"] .sxa-f .sxa-u,
-.sxa-badge[data-sxa-skin="terminal"] .sxa-r .sxa-u { color: #8b949e; }
-.sxa-badge[data-sxa-skin="terminal"] .sxa-v { color: var(--lv-ink); border-color: color-mix(in srgb, var(--lv) 70%, #30363d); }
-.sxa-badge[data-sxa-skin="terminal"] .sxa-v[data-lv="2"] { box-shadow: 0 0 10px var(--sxa-v2-glow); }
+.sxa-badge[data-sxa-skin="terminal"] .sxa-p + .sxa-p::before { content: "│"; margin: 0 7px; color: #484f58; font-weight: 400; }
+.sxa-badge[data-sxa-skin="terminal"] .sxa-dot { display: none; }
+.sxa-badge[data-sxa-skin="terminal"] .sxa-u { color: #8b949e; opacity: 1; }
+.sxa-badge[data-sxa-skin="terminal"] .sxa-v { color: var(--lv-ink); font-size: 11.5px; }
+.sxa-badge[data-sxa-skin="terminal"] .sxa-v[data-lv="0"] .sxa-n::before { content: "~"; margin-right: 3px; }
+.sxa-badge[data-sxa-skin="terminal"] .sxa-v[data-lv="2"] .sxa-n { text-shadow: 0 0 5px var(--lv-glow); }
+.sxa-badge[data-sxa-skin="terminal"] .sxa-v[data-lv="3"] .sxa-n { text-shadow: 0 0 9px var(--lv-glow); }
+.sxa-badge[data-sxa-skin="terminal"] .sxa-rk { margin-right: 2px; }
+.sxa-badge[data-sxa-skin="terminal"] .sxa-tag { height: auto; font-size: 11.5px; }
 .sxa-badge[data-sxa-skin="terminal"] .sxa-tag.rel { color: #58a6ff; }
 .sxa-badge[data-sxa-skin="terminal"] .sxa-tag.hi { color: #3fe07a; }
 .sxa-badge[data-sxa-skin="terminal"] .sxa-tag.warn { color: #ffc53d; }
 .sxa-badge[data-sxa-skin="terminal"] .sxa-tag.n { color: #8b949e; }
 
-/* 极光渐变 */
-.sxa-badge[data-sxa-skin="aurora"] .sxa-v {
-  background: var(--lv-g);
-  color: #ffffff;
-  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.22);
+/* ======================================================================
+ * 热度条 heatbar:流速为 5 格进度条(绿→红),其余为带下划线的文字
+ * ====================================================================== */
+.sxa-badge[data-sxa-skin="heatbar"] { gap: 9px; }
+.sxa-badge[data-sxa-skin="heatbar"] .sxa-p {
+  height: auto; padding: 0; gap: 3px; border: 0; border-radius: 0; background: none; box-shadow: none; color: var(--sxa-ink);
 }
-.sxa-badge[data-sxa-skin="aurora"] .sxa-v[data-lv="2"] { animation: sxa-breathe 1.8s ease-in-out infinite; }
+.sxa-badge[data-sxa-skin="heatbar"] .sxa-u { color: var(--sxa-mute); }
+.sxa-badge[data-sxa-skin="heatbar"] .sxa-v { gap: 5px; color: var(--lv-ink); font-size: 12.5px; }
+.sxa-badge[data-sxa-skin="heatbar"] .sxa-v::before {
+  content: ""; flex: none; width: 34px; height: 10px; border-radius: 2px;
+  background:
+    linear-gradient(var(--sxa-rail), var(--sxa-rail)) right / calc(100% - var(--lv-w)) 100% no-repeat,
+    linear-gradient(90deg, #1ed67a, #ffc400 50%, #ff2d55);
+  -webkit-mask: repeating-linear-gradient(90deg, #000 0 6px, transparent 6px 7px);
+  mask: repeating-linear-gradient(90deg, #000 0 6px, transparent 6px 7px);
+}
+.sxa-badge[data-sxa-skin="heatbar"] .sxa-v[data-lv="0"]::before {
+  background:
+    linear-gradient(var(--sxa-rail), var(--sxa-rail)) right / calc(100% - var(--lv-w)) 100% no-repeat,
+    linear-gradient(var(--sxa-v0-bg), var(--sxa-v0-bg));
+}
+.sxa-badge[data-sxa-skin="heatbar"] .sxa-v[data-lv="2"]::before { filter: drop-shadow(0 0 2px rgba(255, 157, 0, 0.6)); }
+.sxa-badge[data-sxa-skin="heatbar"] .sxa-v[data-lv="3"]::before { filter: drop-shadow(0 0 4px rgba(255, 45, 85, 0.8)); }
+.sxa-badge[data-sxa-skin="heatbar"] .sxa-tag {
+  height: auto; padding: 0 0 2px; border-bottom: 2px solid currentColor; font-size: 12px;
+}
+.sxa-badge[data-sxa-skin="heatbar"] .sxa-tag.rel { color: var(--sxa-blue); }
+.sxa-badge[data-sxa-skin="heatbar"] .sxa-tag.hi { color: var(--sxa-calm); }
+.sxa-badge[data-sxa-skin="heatbar"] .sxa-tag.warn { color: var(--sxa-rise); }
+.sxa-badge[data-sxa-skin="heatbar"] .sxa-tag.n { color: var(--sxa-mute); }
+
+/* ======================================================================
+ * 霓虹 neon:透明底 + 发光描边,方圆角
+ * ====================================================================== */
+.sxa-badge[data-sxa-skin="neon"] .sxa-p { border-radius: 6px; background: transparent; }
+.sxa-badge[data-sxa-skin="neon"] .sxa-f,
+.sxa-badge[data-sxa-skin="neon"] .sxa-r {
+  border: 1.5px solid #7856ff; color: var(--sxa-ink); box-shadow: 0 0 6px rgba(120, 86, 255, 0.45);
+}
+.sxa-badge[data-sxa-skin="neon"] .sxa-v {
+  border: 1.5px solid var(--lv); background: color-mix(in srgb, var(--lv) 12%, transparent); color: var(--lv-ink);
+  box-shadow: 0 0 8px color-mix(in srgb, var(--lv) 55%, transparent), inset 0 0 6px color-mix(in srgb, var(--lv) 25%, transparent);
+}
+html[data-sxa-theme="dark"] .sxa-badge[data-sxa-skin="neon"] .sxa-v { text-shadow: 0 0 6px color-mix(in srgb, var(--lv) 80%, transparent); }
+.sxa-badge[data-sxa-skin="neon"] .sxa-v[data-lv="0"] { box-shadow: none; background: transparent; text-shadow: none; }
+.sxa-badge[data-sxa-skin="neon"] .sxa-v[data-lv="3"] {
+  box-shadow: 0 0 16px var(--lv-glow), 0 0 2px var(--lv), inset 0 0 8px color-mix(in srgb, var(--lv) 35%, transparent);
+}
+.sxa-badge[data-sxa-skin="neon"] .sxa-tag { background: transparent; box-shadow: 0 0 5px color-mix(in srgb, currentColor 40%, transparent); }
+
+/* ======================================================================
+ * 原生文字 minimal:无框,· 分隔,只上色
+ * ====================================================================== */
+.sxa-badge[data-sxa-skin="minimal"] { gap: 0; }
+.sxa-badge[data-sxa-skin="minimal"] .sxa-p {
+  height: auto; padding: 0; border: 0; border-radius: 0; background: none; box-shadow: none;
+}
+.sxa-badge[data-sxa-skin="minimal"] .sxa-p + .sxa-p::before { content: "·"; margin: 0 6px; color: var(--sxa-mute); font-weight: 700; }
+.sxa-badge[data-sxa-skin="minimal"] .sxa-f,
+.sxa-badge[data-sxa-skin="minimal"] .sxa-r { color: var(--sxa-ink); }
+.sxa-badge[data-sxa-skin="minimal"] .sxa-u { color: var(--sxa-mute); }
+.sxa-badge[data-sxa-skin="minimal"] .sxa-v { color: var(--lv-ink); font-size: 13px; }
+.sxa-badge[data-sxa-skin="minimal"] .sxa-v .sxa-u { color: inherit; }
+.sxa-badge[data-sxa-skin="minimal"] .sxa-v[data-lv="0"] { font-size: 12.5px; font-weight: 600; }
+.sxa-badge[data-sxa-skin="minimal"] .sxa-v[data-lv="2"] .sxa-n { text-shadow: 0 0 5px var(--lv-glow); }
+.sxa-badge[data-sxa-skin="minimal"] .sxa-v[data-lv="3"] .sxa-n { text-shadow: 0 0 9px var(--lv-glow); }
+.sxa-badge[data-sxa-skin="minimal"] .sxa-tag { font-size: 12px; }
+
+/* ======================================================================
+ * 极光 aurora:渐变填充、毛玻璃底,爆款呼吸光晕
+ * ====================================================================== */
+.sxa-badge[data-sxa-skin="aurora"] .sxa-p { border-radius: 999px; }
+.sxa-badge[data-sxa-skin="aurora"] .sxa-v { background: var(--lv-g); color: #fff; text-shadow: 0 1px 1px rgba(0, 0, 0, 0.22); }
+.sxa-badge[data-sxa-skin="aurora"] .sxa-v[data-lv="3"] { animation: sxa-breathe 1.8s ease-in-out infinite; }
 .sxa-badge[data-sxa-skin="aurora"] .sxa-f,
-.sxa-badge[data-sxa-skin="aurora"] .sxa-r {
-  border-color: color-mix(in srgb, #7856ff 55%, transparent);
-  background: color-mix(in srgb, #7856ff 10%, transparent);
+.sxa-badge[data-sxa-skin="aurora"] .sxa-r,
+.sxa-badge[data-sxa-skin="aurora"] .sxa-tag {
+  border: 1px solid transparent;
+  background:
+    linear-gradient(var(--sxa-card), var(--sxa-card)) padding-box,
+    linear-gradient(135deg, #00e0ff, #7856ff, #ff0080) border-box;
 }
 @keyframes sxa-breathe {
-  0%, 100% { box-shadow: 0 0 0 2px rgba(255, 45, 122, 0.25), 0 2px 8px var(--sxa-v2-glow); }
-  50% { box-shadow: 0 0 0 3px rgba(255, 45, 122, 0.35), 0 2px 18px var(--sxa-v2-glow); }
+  0%, 100% { box-shadow: 0 0 0 2px rgba(255, 45, 122, 0.25), 0 2px 8px var(--sxa-v3-glow); }
+  50% { box-shadow: 0 0 0 3px rgba(255, 45, 122, 0.35), 0 2px 18px var(--sxa-v3-glow); }
 }
 
 /* 小信号灯圆点,弹窗阈值等处使用 */
 .sxa-lamp { display: inline-block; width: 10px; height: 10px; border-radius: 50%; flex: none; }
 .sxa-lamp[data-lv="0"] { background: var(--sxa-v0-bg); }
 .sxa-lamp[data-lv="1"] { background: var(--sxa-v1-bg); }
-.sxa-lamp[data-lv="2"] { background: var(--sxa-v2-bg); box-shadow: 0 0 6px var(--sxa-v2-glow); }
+.sxa-lamp[data-lv="2"] { background: var(--sxa-v2-bg); box-shadow: 0 0 4px var(--sxa-v2-glow); }
+.sxa-lamp[data-lv="3"] { background: var(--sxa-v3-bg); box-shadow: 0 0 7px var(--sxa-v3-glow); }
 
-/* ---------- 悬停详情卡 ---------- */
+/* ======================================================================
+ * 悬停详情卡(配色跟随主题)
+ * ====================================================================== */
 #sxa-tip {
   position: fixed;
   z-index: 2147483646;
@@ -315,7 +441,7 @@ html[data-sxa-theme="dark"] .sxa-badge[data-sxa-skin="candy"] .sxa-r .sxa-u { co
 .sxa-st { display: flex; flex-direction: column; gap: 1px; padding: 6px 8px; border-radius: 8px; background: var(--sxa-wash); }
 .sxa-stats.five .sxa-st { padding: 5px 4px; align-items: center; }
 .sxa-st b { font-size: 15px; }
-.sxa-stats.five .sxa-st b { font-size: 12.5px; }
+.sxa-stats.five .sxa-st b { font-size: 12px; white-space: nowrap; letter-spacing: -0.02em; }
 .sxa-st span { font-size: 11px; color: var(--sxa-mute); }
 
 .sxa-kvs { margin-top: 8px; }
@@ -330,16 +456,17 @@ html[data-sxa-theme="dark"] .sxa-badge[data-sxa-skin="candy"] .sxa-r .sxa-u { co
 #sxa-tip > .sxa-tw:first-child { margin-top: 0; border-top: 0; }
 .sxa-read { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
 .sxa-read-n { display: flex; align-items: baseline; gap: 6px; }
-.sxa-read-n .sxa-ic { align-self: center; }
 .sxa-read-n b { font-size: 20px; line-height: 1; }
 .sxa-read-n span { color: var(--sxa-mute); font-size: 11px; }
 .sxa-read[data-lv="0"] { --sxa-lv: var(--sxa-v0-bg); --sxa-lv-ink: var(--sxa-v0-ink); --sxa-lv-fg: var(--sxa-v0-fg); }
 .sxa-read[data-lv="1"] { --sxa-lv: var(--sxa-v1-bg); --sxa-lv-ink: var(--sxa-v1-ink); --sxa-lv-fg: var(--sxa-v1-fg); }
 .sxa-read[data-lv="2"] { --sxa-lv: var(--sxa-v2-bg); --sxa-lv-ink: var(--sxa-v2-ink); --sxa-lv-fg: var(--sxa-v2-fg); }
-.sxa-read .sxa-ic { color: var(--sxa-lv-ink); }
+.sxa-read[data-lv="3"] { --sxa-lv: var(--sxa-v3-bg); --sxa-lv-ink: var(--sxa-v3-ink); --sxa-lv-fg: var(--sxa-v3-fg); }
+.sxa-read .sxa-rk { align-self: center; }
 .sxa-read .sxa-read-n b { color: var(--sxa-lv-ink); }
 .sxa-pill.lv { color: var(--sxa-lv-fg); background: var(--sxa-lv); font-weight: 800; }
-.sxa-read[data-lv="2"] .sxa-pill.lv { box-shadow: 0 2px 8px var(--sxa-v2-glow); }
+.sxa-read[data-lv="2"] .sxa-pill.lv { box-shadow: 0 2px 6px var(--sxa-v2-glow); }
+.sxa-read[data-lv="3"] .sxa-pill.lv { box-shadow: 0 2px 10px var(--sxa-v3-glow); }
 
 .sxa-score { display: flex; align-items: center; gap: 8px; margin-top: 10px; }
 .sxa-score span { font-size: 11px; color: var(--sxa-mute); }
@@ -350,7 +477,7 @@ html[data-sxa-theme="dark"] .sxa-badge[data-sxa-skin="candy"] .sxa-r .sxa-u { co
   height: 4px;
   border-radius: 2px;
   overflow: hidden;
-  background: linear-gradient(90deg, var(--sxa-v0-bg), var(--sxa-v1-bg) 55%, var(--sxa-v2-bg));
+  background: linear-gradient(90deg, var(--sxa-v1-bg), var(--sxa-v2-bg) 55%, var(--sxa-v3-bg));
 }
 .sxa-track i { position: absolute; top: 0; right: 0; bottom: 0; background: var(--sxa-rail); }
 
@@ -365,5 +492,5 @@ html[data-sxa-theme="dark"] .sxa-badge[data-sxa-skin="candy"] .sxa-r .sxa-u { co
 
 @media (prefers-reduced-motion: reduce) {
   #sxa-tip.in { animation: none; }
-  .sxa-badge[data-sxa-skin="aurora"] .sxa-v[data-lv="2"] { animation: none; }
+  .sxa-badge[data-sxa-skin="aurora"] .sxa-v[data-lv="3"] { animation: none; }
 }

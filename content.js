@@ -385,7 +385,9 @@
       const read = E("div", "sxa-read");
       read.dataset.lv = String(lv);
       const num = E("div", "sxa-read-n");
-    num.append(window.SnowXBadge.icon(lv, true), E("b", "sxa-n", shown.toLocaleString()), E("span", null, "浏览/小时"));
+      const ic = window.SnowXBadge.icon(lv, true);
+      if (ic) num.append(ic);
+      num.append(E("b", "sxa-n", shown.toLocaleString()), E("span", null, "浏览/小时"));
       read.append(num, E("span", "sxa-pill lv", window.SnowXBadge.LEVEL_NAMES[lv]));
       sec.append(read);
 

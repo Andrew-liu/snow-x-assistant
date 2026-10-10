@@ -18,8 +18,22 @@
 
   <nav class="tabs" role="tablist">
     <button type="button" role="tab" id="tab-tags" data-tab="tags" aria-controls="panel-tags">标签</button>
+    <button type="button" role="tab" id="tab-skin" data-tab="skin" aria-controls="panel-skin">主题</button>
     <button type="button" role="tab" id="tab-mutual" data-tab="mutual" aria-controls="panel-mutual">互关清理<i id="mutualDot" class="tab-dot" hidden></i></button>
   </nav>
+
+  <!-- ========== 主题 ========== -->
+  <div class="panel" id="panel-skin" role="tabpanel" aria-labelledby="tab-skin" hidden>
+    <div class="skin-bar">
+      <span>预览背景</span>
+      <div class="seg mini" id="bgSeg">
+        <label><input type="radio" name="previewBg" value="light"><span>浅色</span></label>
+        <label><input type="radio" name="previewBg" value="dark"><span>深色</span></label>
+      </div>
+    </div>
+    <div id="skins" class="skins" role="radiogroup" aria-label="标签主题"></div>
+    <p class="note">主题同时作用于推文流速、账号标签和悬停详情卡。预览背景只影响此弹窗。</p>
+  </div>
 
   <!-- ========== 标签 ========== -->
   <div class="panel" id="panel-tags" role="tabpanel" aria-labelledby="tab-tags">
@@ -35,14 +49,8 @@
         </div>
       </div>
       <p id="previewEmpty" class="preview-empty" hidden>流速和账号标签都已关闭</p>
+      <button type="button" class="skin-link" id="skinLink"></button>
     </div>
-
-    <section class="card">
-      <div class="row col">
-        <span class="label"><b>标签主题</b><small>流速和账号标签共用,悬停卡跟随</small></span>
-        <div id="skins" class="skins" role="radiogroup" aria-label="标签主题"></div>
-      </div>
-    </section>
 
     <section class="card">
       <label class="row head">
@@ -53,8 +61,9 @@
         <div class="row">
           <span class="label">档位阈值<small>浏览/小时</small></span>
           <span class="thresholds" id="thresholds">
-            <label><i class="sxa-lamp" data-lv="1" title="上升"></i><input type="number" min="1" step="100" data-num="velocityTrending" aria-label="上升阈值"></label>
-            <label><i class="sxa-lamp" data-lv="2" title="爆款"></i><input type="number" min="2" step="1000" data-num="velocityViral" aria-label="爆款阈值"></label>
+            <label><i class="sxa-lamp" data-lv="1" title="升温"></i><input type="number" min="1" step="100" data-num="velocityTrending" aria-label="升温阈值"></label>
+            <label><i class="sxa-lamp" data-lv="2" title="热门"></i><input type="number" min="2" step="500" data-num="velocityHot" aria-label="热门阈值"></label>
+            <label><i class="sxa-lamp" data-lv="3" title="爆款"></i><input type="number" min="3" step="1000" data-num="velocityViral" aria-label="爆款阈值"></label>
           </span>
         </div>
       </div>

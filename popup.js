@@ -4,12 +4,29 @@
   const B = window.SnowXBadge;
   const KEY = "sxa_settings";
   const TAB_KEY = "sxa_popup_tab";
+  const TABS = ["tags", "skin", "mutual"];
   const HOUR = 3600e3;
   let settings = null;
 
-  // 跟随系统深浅色,复用 content.css 里的同一套变量
+  const SKIN_DESC = {
+    signal: "实心彩色胶囊,档位越高越亮",
+    shield: "GitHub 徽章式,左边是名称,右边是数值",
+    sticker: "粗黑描边加硬投影,微微歪斜的贴纸",
+    terminal: "整条命令行,等宽字体竖线分隔",
+    heatbar: "流速画成 5 格热度条,其余是纯文字",
+    neon: "发光描边,在深色背景上最显眼",
+    minimal: "不加框,只给文字上色,最贴近 X 原生",
+    aurora: "渐变填充,爆款带呼吸光晕",
+  };
+
+  // 跟随系统深浅色;主题页可临时切换预览背景(不保存)
   const media = window.matchMedia("(prefers-color-scheme: dark)");
-  const applyTheme = () => { document.documentElement.dataset.sxaTheme = media.matches ? "dark" : "light"; };
+  let bgOverride = null;
+  const applyTheme = () => {
+    const mode = bgOverride || (media.matches ? "dark" : "light");
+    document.documentElement.dataset.sxaTheme = mode;
+    document.querySelectorAll('#bgSeg input').forEach((r) => { r.checked = r.value === mode; });
+  };
   applyTheme();
   media.addEventListener("change", applyTheme);
 
@@ -29,22 +46,24 @@
     document.querySelectorAll(".panel").forEach((p) => { p.hidden = p.id !== "panel-" + name; });
     try { localStorage.setItem(TAB_KEY, name); } catch (_) {}
   }
-  document.querySelector(".tabs").addEventListener("click", (e) => {
+  const tabBar = document.querySelector(".tabs");
+  tabBar.addEventListener("click", (e) => {
     const b = e.target.closest("[data-tab]");
     if (b) showTab(b.dataset.tab);
   });
-  document.querySelector(".tabs").addEventListener("keydown", (e) => {
+  tabBar.addEventListener("keydown", (e) => {
     if (e.key !== "ArrowLeft" && e.key !== "ArrowRight") return;
-    const tabs = Array.from(document.querySelectorAll(".tabs [data-tab]"));
+    const tabs = Array.from(tabBar.querySelectorAll("[data-tab]"));
     const i = tabs.indexOf(document.activeElement);
     if (i < 0) return;
     const next = tabs[(i + (e.key === "ArrowRight" ? 1 : tabs.length - 1)) % tabs.length];
     next.focus();
     showTab(next.dataset.tab);
   });
+  document.getElementById("skinLink").addEventListener("click", () => showTab("skin"));
   let saved = null;
   try { saved = localStorage.getItem(TAB_KEY); } catch (_) {}
-  showTab(saved === "mutual" ? "mutual" : "tags");
+  showTab(TABS.includes(saved) ? saved : "tags");
 
   // ---------- 示例数据 ----------
   const sampleUser = { handle: "snow", followers: 123456, following: 820, tweets: 4321, followedBy: true, iFollow: true, createdAt: "Mon Jan 05 00:00:00 +0000 2015" };
@@ -53,30 +72,41 @@
     id: "s" + perHour, views: Math.round(perHour * 4), likes: 800, retweets: 120, replies: 60, quotes: 4, bookmarks: 90,
     createdAt: new Date(now - 4 * HOUR).toISOString(),
   });
+  const levelSamples = () => [
+    Math.max(1, Math.round(settings.velocityTrending / 2)),
+    Math.round((settings.velocityTrending + settings.velocityHot) / 2),
+    Math.round((settings.velocityHot + settings.velocityViral) / 2),
+    settings.velocityViral * 2,
+  ];
 
   function renderPreview(now) {
     const slot = document.getElementById("previewSlot");
     const empty = document.getElementById("previewEmpty");
     slot.replaceChildren();
-    const built = B.build({ user: sampleUser, stat: sampleStat, tweet: tweetAt(5750, now), settings, now, compact: false });
+    const built = B.build({ user: sampleUser, stat: sampleStat, tweet: tweetAt(levelSamples()[1], now), settings, now, compact: false });
     if (built) slot.append(built.wrap);
     empty.hidden = !!built;
+    document.getElementById("skinLink").textContent = "主题:" + P.SKINS[settings.skin] + "  ›";
   }
 
-  // 主题卡片:每张卡用该主题渲染 粉丝 + 1 个质量标签 + 上升 + 爆款,能直接比较流速的亮度
+  // 主题卡:一条模拟推文头(粉丝 + 热门流速 + 2 个质量标签),下面一行展示普通 / 升温 / 热门 / 爆款四档
   function renderSkins(now) {
     const box = document.getElementById("skins");
     box.replaceChildren();
-    const midRise = Math.round((settings.velocityTrending + settings.velocityViral) / 2);
+    const samples = levelSamples();
+    const rise = samples[2];
     for (const [key, name] of Object.entries(P.SKINS)) {
-      const s = Object.assign({}, settings, { skin: key, tagsEnabled: true, showFollowers: true, showRatio: false, maxTags: 1, showVelocity: false });
-      const acct = B.build({ user: sampleUser, stat: sampleStat, settings: s, now, compact: false });
-      const vel = Object.assign({}, s, { tagsEnabled: false, showVelocity: true });
-      const wrap = acct ? acct.wrap : B.el("span", "sxa-badge");
-      wrap.dataset.sxaSkin = key;
-      for (const per of [midRise, settings.velocityViral * 2]) {
-        const v = B.build({ tweet: tweetAt(per, now), settings: vel, now });
-        if (v) wrap.append(...v.wrap.children);
+      const full = Object.assign({}, settings, {
+        skin: key, tagsEnabled: true, showVelocity: true, showFollowers: true, showRatio: false, maxTags: 2,
+      });
+      const head = B.build({ user: sampleUser, stat: sampleStat, tweet: tweetAt(rise, now), settings: full, now, compact: false });
+
+      const velOnly = Object.assign({}, full, { tagsEnabled: false });
+      const levels = B.el("span", "sxa-badge");
+      levels.dataset.sxaSkin = key;
+      for (const per of samples) {
+        const v = B.build({ tweet: tweetAt(per, now), settings: velOnly, now });
+        if (v) levels.append(...v.wrap.children);
       }
 
       const label = B.el("label", "skin");
@@ -85,8 +115,16 @@
       input.name = "skin";
       input.value = key;
       input.dataset.key = "skin";
+
       const body = B.el("span", "skin-body");
-      body.append(B.el("span", "skin-name", name), wrap);
+      const title = B.el("span", "skin-title");
+      title.append(B.el("b", "", name), B.el("small", "", SKIN_DESC[key] || ""));
+      const mock = B.el("span", "skin-mock");
+      mock.append(B.el("i", "skin-av"), B.el("b", "", "Snow"), B.el("span", "skin-at", "@snow"));
+      if (head) mock.append(head.wrap);
+      const lv = B.el("span", "skin-levels");
+      lv.append(B.el("span", "skin-cap", "流速四档"), levels);
+      body.append(title, mock, lv);
       label.append(input, body);
       box.append(label);
     }
@@ -119,6 +157,11 @@
 
   document.addEventListener("change", (e) => {
     const el = e.target;
+    if (el.name === "previewBg") {
+      bgOverride = el.value;
+      applyTheme();
+      return;
+    }
     if (!settings) return;
     if (el.dataset.num) {
       settings[el.dataset.num] = Number(el.value);
@@ -134,7 +177,7 @@
       return;
     }
     const focusSkin = el.name === "skin";
-    settings = P.mergeSettings(settings); // 校正阈值、主题等取值
+    settings = P.mergeSettings(settings);
     paint();
     if (focusSkin) {
       const cur = document.querySelector(`#skins input[value="${settings.skin}"]`);

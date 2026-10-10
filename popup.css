@@ -101,10 +101,13 @@ h1 { margin: 0; font-size: 15px; font-weight: 700; letter-spacing: -0.01em; }
 .seg input:checked + span { color: var(--sxa-ink); background: var(--sxa-card); box-shadow: 0 1px 3px rgba(15, 20, 25, 0.15); }
 
 /* 阈值输入:前面放对应档位的信号条 */
-.thresholds { display: inline-flex; gap: 8px; }
-.thresholds label { display: inline-flex; align-items: center; gap: 5px; }
+.thresholds { display: inline-flex; gap: 6px; }
+.thresholds label { display: inline-flex; align-items: center; gap: 4px; }
+.thresholds input { -moz-appearance: textfield; appearance: textfield; }
+.thresholds input::-webkit-inner-spin-button,
+.thresholds input::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
 .thresholds input {
-  width: 70px; padding: 4px 6px; border: 1px solid var(--sxa-line); border-radius: 8px;
+  width: 58px; padding: 4px 5px; border: 1px solid var(--sxa-line); border-radius: 8px;
   font: 600 12px var(--sxa-mono); color: var(--sxa-ink); background: var(--sxa-wash); text-align: right;
 }
 
@@ -130,20 +133,39 @@ button.danger.armed { color: #fff; background: var(--sxa-hot); border-color: var
 .tab-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--sxa-calm); }
 .tabs button[aria-selected="true"] .tab-dot { background: #fff; }
 
-/* 主题卡片 */
-.skins { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-.skin { position: relative; cursor: pointer; }
+/* 主题页 */
+.skin-bar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; font-size: 12px; color: var(--sxa-mute); }
+.seg.mini { width: 120px; }
+.seg.mini span { padding: 3px 0; font-size: 11.5px; }
+.skins { display: flex; flex-direction: column; gap: 8px; margin-bottom: 10px; }
+.skin { position: relative; display: block; cursor: pointer; }
 .skin input { position: absolute; opacity: 0; pointer-events: none; }
 .skin-body {
-  display: flex; flex-direction: column; gap: 7px; height: 100%; padding: 8px 9px 9px;
-  border: 1.5px solid var(--sxa-line); border-radius: 11px; background: var(--pop-bg); transition: border-color 0.12s, box-shadow 0.12s;
+  display: flex; flex-direction: column; gap: 9px; padding: 10px 12px 11px;
+  border: 1.5px solid var(--sxa-line); border-radius: 12px; background: var(--sxa-card); transition: border-color 0.12s, box-shadow 0.12s;
 }
 .skin:hover .skin-body { border-color: var(--sxa-mute); }
 .skin input:checked + .skin-body { border-color: var(--sxa-blue); box-shadow: 0 0 0 3px color-mix(in srgb, var(--sxa-blue) 18%, transparent); }
 .skin input:focus-visible + .skin-body { outline: 2px solid var(--sxa-blue); outline-offset: 2px; }
-.skin-name { display: flex; justify-content: space-between; font-size: 12px; font-weight: 700; }
-.skin input:checked + .skin-body .skin-name::after { content: "使用中"; font-size: 10.5px; color: var(--sxa-blue); }
-.skin-body .sxa-badge { flex-wrap: wrap; row-gap: 5px; margin-left: 0; white-space: nowrap; }
+.skin-title { display: flex; align-items: baseline; gap: 8px; }
+.skin-title b { font-size: 13.5px; }
+.skin-title small { flex: 1; min-width: 0; font-size: 11.5px; color: var(--sxa-mute); }
+.skin input:checked + .skin-body .skin-title::after {
+  content: "使用中"; flex: none; padding: 1px 7px; border-radius: 999px; font-size: 10.5px; font-weight: 700; color: #fff; background: var(--sxa-blue);
+}
+.skin-mock { display: flex; align-items: center; flex-wrap: wrap; gap: 4px; row-gap: 6px; font-size: 13px; }
+.skin-av { width: 18px; height: 18px; border-radius: 50%; background: linear-gradient(135deg, #1d9bf0, #7856ff); }
+.skin-at { color: var(--sxa-mute); }
+.skin-mock .sxa-badge { flex-wrap: wrap; flex-shrink: 1; min-width: 0; row-gap: 6px; }
+.skin-levels { display: flex; align-items: center; gap: 8px; min-width: 0; padding-top: 8px; border-top: 1px dashed var(--sxa-line); }
+.skin-cap { flex: none; font-size: 11px; color: var(--sxa-mute); }
+.skin-levels .sxa-badge { margin-left: 0; flex-wrap: wrap; flex-shrink: 1; min-width: 0; row-gap: 6px; }
+.skin-levels .sxa-badge[data-sxa-skin="terminal"] { height: auto; min-height: 22px; padding-top: 4px; padding-bottom: 4px; }
+.skin-link {
+  display: block; margin: 8px 0 0 auto; padding: 0; border: 0; background: none; cursor: pointer;
+  font: 600 12px var(--sxa-sans); color: var(--sxa-blue);
+}
+.skin-link:hover { text-decoration: underline; }
 
 /* 互关清理 Tab 说明 */
 .steps { padding: 10px 12px; }

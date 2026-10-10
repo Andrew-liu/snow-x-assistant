@@ -41,16 +41,22 @@ test("extract 从嵌套 GraphQL 里取出用户和推文", () => {
   assert.equal(tweets[0].bookmarks, 30);
 });
 
-test("流速 = 浏览 / 小时,并按阈值分级", () => {
+test("流速 = 浏览 / 小时,按 1k / 5k / 1w 分四档,后三档带火箭", () => {
   const cfg = P.mergeSettings();
   const t = { views: 50000, likes: 100, retweets: 20, replies: 10, quotes: 0, bookmarks: 30, createdAt: new Date(NOW - 5 * HOUR).toISOString() };
   assert.equal(Math.round(P.velocityOf(t, NOW)), 10000);
   assert.equal(P.velocityLevel(999, cfg), 0);
   assert.equal(P.velocityLevel(1000, cfg), 1);
-  assert.equal(P.velocityLevel(10000, cfg), 2);
+  assert.equal(P.velocityLevel(4999, cfg), 1);
+  assert.equal(P.velocityLevel(5000, cfg), 2);
+  assert.equal(P.velocityLevel(9999, cfg), 2);
+  assert.equal(P.velocityLevel(10000, cfg), 3);
   const tag = P.velocityTag(t, NOW, cfg);
-  assert.equal(tag.cls, "v2");
-  assert.match(tag.text, /1万\/h$/);
+  assert.equal(tag.cls, "v3");
+  assert.equal(tag.text, "\u{1F680} 1万/h");
+  const calm = P.velocityTag({ views: 500, createdAt: new Date(NOW - HOUR).toISOString() }, NOW, cfg);
+  assert.equal(calm.level, 0);
+  assert.ok(!calm.text.includes("\u{1F680}"));
 });
 
 test("刚发的推文按至少 0.1 小时算,无浏览量不出流速", () => {
@@ -75,7 +81,10 @@ test("mergeSettings 校正非法值并保留标签开关", () => {
   const s = P.mergeSettings({ layout: "x", maxTags: 99, velocityTrending: 5000, velocityViral: 100, mutualDelayMs: 10, tags: { bigV: false, junk: 1 }, showVelocity: "yes" });
   assert.equal(s.layout, "auto");
   assert.equal(s.maxTags, 7);
-  assert.ok(s.velocityViral > s.velocityTrending);
+  assert.ok(s.velocityTrending < s.velocityHot && s.velocityHot < s.velocityViral);
+  assert.deepEqual([s.velocityTrending, s.velocityHot, s.velocityViral], [1000, 5000, 10000]);
+  const ok = P.mergeSettings({ velocityTrending: 2000, velocityHot: 6000, velocityViral: 20000 });
+  assert.deepEqual([ok.velocityTrending, ok.velocityHot, ok.velocityViral], [2000, 6000, 20000]);
   assert.equal(s.mutualDelayMs, 800);
   assert.equal(s.tags.bigV, false);
   assert.equal(s.tags.junk, undefined);
@@ -85,7 +94,8 @@ test("mergeSettings 校正非法值并保留标签开关", () => {
 
 test("mergeSettings 主题与流速独立开关", () => {
   assert.equal(P.mergeSettings().skin, "signal");
-  assert.equal(P.mergeSettings({ skin: "neon" }).skin, "neon");
+  assert.equal(P.mergeSettings({ skin: "shield" }).skin, "shield");
+  assert.equal(P.mergeSettings({ skin: "candy" }).skin, "signal");
   assert.equal(P.mergeSettings({ skin: "__proto__" }).skin, "signal");
   assert.equal(P.mergeSettings({ skin: 3 }).skin, "signal");
   const s = P.mergeSettings({ tagsEnabled: false, showVelocity: true });
