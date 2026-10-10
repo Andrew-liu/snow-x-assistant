@@ -363,8 +363,8 @@
       const grid = E("div", "sxa-stats");
       grid.append(
         stat("粉丝", P.fmt(u.followers)),
-        stat("关注", P.fmt(u.following)),
-        stat("粉/关比", P.fmtRatio(P.ratioOf(u))),
+        stat("关注", u.following === null ? "—" : P.fmt(u.following)),
+        stat("关/粉比", P.fmtFollowingRatio(P.followingRatioOf(u))),
       );
       box.append(grid);
 

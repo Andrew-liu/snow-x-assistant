@@ -11,7 +11,7 @@
 
 <p>
   <img alt="Manifest V3" src="https://img.shields.io/badge/Manifest-V3-1d9bf0?style=flat-square">
-  <img alt="Version" src="https://img.shields.io/badge/version-0.5.1-0f1419?style=flat-square">
+  <img alt="Version" src="https://img.shields.io/badge/version-0.5.3-0f1419?style=flat-square">
   <img alt="Permissions" src="https://img.shields.io/badge/permissions-storage%20only-00ba7c?style=flat-square">
   <img alt="Network" src="https://img.shields.io/badge/extra%20requests-0-00ba7c?style=flat-square">
   <img alt="Build" src="https://img.shields.io/badge/build-none-8b98a5?style=flat-square">
@@ -52,7 +52,7 @@
 
 ### 账号标签
 
-粉丝量级、粉丝/关注比,以及互关、大V、新号、老号、高互动、低活跃、疑似互粉号七种质量标签,每一项都能单独开关。
+粉丝量级、关注/粉丝比（百分比）,以及互关、大V、新号、老号、高互动、低活跃、疑似互粉号七种质量标签,每一项都能单独开关。
 
 </td>
 <td width="33%" valign="top">

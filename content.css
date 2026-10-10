@@ -155,7 +155,8 @@ html[data-sxa-theme] [data-sxa-skin="aurora"] {
   vertical-align: middle;
   white-space: nowrap;
   cursor: default;
-  font: 600 12px/1 var(--sxa-sans);
+  /* 固定标签字体,避免 X 加载 TwitterChirp 前后的字形基线变化。 */
+  font: 600 12px/1 Arial, "PingFang SC", "Microsoft YaHei", sans-serif;
 }
 .sxa-line { display: flex; padding-top: 3px; min-width: 0; }
 .sxa-line .sxa-badge { margin-left: 0; }
@@ -163,6 +164,9 @@ html[data-sxa-theme] [data-sxa-skin="aurora"] {
 .sxa-p {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
+  font: inherit;
+  line-height: 1;
   gap: 3px;
   box-sizing: border-box;
   height: 20px;
@@ -171,12 +175,18 @@ html[data-sxa-theme] [data-sxa-skin="aurora"] {
   border-radius: 999px;
 }
 .sxa-n {
-  font-family: var(--sxa-mono);
+  font-family: inherit;
+  line-height: 1;
   font-weight: 800;
   font-variant-numeric: tabular-nums;
   letter-spacing: -0.02em;
 }
-.sxa-u { font-size: 10.5px; font-weight: 600; }
+/* 数字的可见字形略低于行框中心,只微调标签内数字,不影响详情卡。 */
+.sxa-badge .sxa-n { position: relative; top: -0.5px; }
+.sxa-badge[data-sxa-skin="shield"] .sxa-n,
+.sxa-badge[data-sxa-skin="sticker"] .sxa-n,
+.sxa-badge[data-sxa-skin="terminal"] .sxa-n { top: 0; }
+.sxa-u { display: inline-flex; align-items: center; align-self: center; font-family: inherit; font-size: 10.5px; font-weight: 600; line-height: 1; }
 
 .sxa-f, .sxa-r { border: 1.5px solid var(--sxa-f-bd); background: var(--sxa-f-bg); color: var(--sxa-f-ink); }
 .sxa-f .sxa-u, .sxa-r .sxa-u { color: var(--sxa-f-unit); }
@@ -241,7 +251,7 @@ html[data-sxa-theme] [data-sxa-skin="aurora"] {
 .sxa-badge[data-sxa-skin="shield"] .sxa-f { background: var(--sxa-tier, #007ec6); }
 .sxa-badge[data-sxa-skin="shield"] .sxa-f::before { content: "粉丝"; }
 .sxa-badge[data-sxa-skin="shield"] .sxa-r { background: #8a63d2; }
-.sxa-badge[data-sxa-skin="shield"] .sxa-r::before { content: "粉/关"; }
+.sxa-badge[data-sxa-skin="shield"] .sxa-r::before { content: "关/粉"; }
 .sxa-badge[data-sxa-skin="shield"] .sxa-v { background: var(--lv); }
 .sxa-badge[data-sxa-skin="shield"] .sxa-v::before { content: "流速"; }
 .sxa-badge[data-sxa-skin="shield"] .sxa-v[data-lv="2"] { box-shadow: 0 0 6px var(--lv-glow); }

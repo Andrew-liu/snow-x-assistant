@@ -146,7 +146,6 @@
       el.querySelectorAll("input, button, select").forEach((c) => { c.disabled = off; });
     });
     document.getElementById("thresholds").dataset.sxaSkin = settings.skin;
-    document.getElementById("mutualDot").hidden = !settings.mutualEnabled;
     renderPreview(now);
   }
 

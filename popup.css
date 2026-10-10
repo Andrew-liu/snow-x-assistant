@@ -37,7 +37,7 @@ h1 { margin: 0; font-size: 15px; font-weight: 700; letter-spacing: -0.01em; }
 .mock-avatar { flex: none; width: 34px; height: 34px; border-radius: 50%; background: linear-gradient(135deg, #1d9bf0, #7856ff); }
 .mock-body { flex: 1; min-width: 0; }
 .mock-head { display: flex; align-items: center; flex-wrap: wrap; gap: 4px; min-height: 22px; }
-.mock-head b { font-size: 14px; }
+.mock-head > b { font-size: 14px; }
 .mock-head > span:not(.slot) { color: var(--sxa-mute); }
 .slot { display: flex; min-width: 0; max-width: 100%; }
 .slot .sxa-badge { flex-wrap: wrap; flex-shrink: 1; row-gap: 4px; margin-left: 0; }
@@ -130,8 +130,6 @@ button.danger.armed { color: #fff; background: var(--sxa-hot); border-color: var
 }
 .tabs button:hover { color: var(--sxa-ink); }
 .tabs button[aria-selected="true"] { color: #fff; background: var(--sxa-blue); }
-.tab-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--sxa-calm); }
-.tabs button[aria-selected="true"] .tab-dot { background: #fff; }
 
 /* 主题页 */
 .skin-bar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; font-size: 12px; color: var(--sxa-mute); }
@@ -175,7 +173,16 @@ button.danger.armed { color: #fff; background: var(--sxa-hot); border-color: var
 .steps code { font: 600 11px var(--sxa-mono); padding: 1px 4px; border-radius: 4px; background: var(--sxa-wash); }
 .steps .note { margin: 0; }
 
-footer { margin-top: 2px; font-size: 11px; color: var(--sxa-mute); text-align: center; }
+footer { display: flex; flex-direction: column; align-items: center; gap: 9px; margin-top: 2px; font-size: 11px; color: var(--sxa-mute); text-align: center; }
+.author-follow {
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  padding: 7px 13px; border: 1px solid var(--sxa-blue); border-radius: 999px;
+  font: 700 12px/1.2 var(--sxa-sans); color: var(--sxa-blue); text-decoration: none;
+  background: color-mix(in srgb, var(--sxa-blue) 8%, transparent);
+}
+.author-follow span { font-weight: 500; }
+.author-follow:hover { color: #fff; background: var(--sxa-blue); }
+.author-follow:focus-visible { outline: 2px solid var(--sxa-blue); outline-offset: 3px; }
 
 @media (prefers-reduced-motion: reduce) {
   * { transition: none !important; }

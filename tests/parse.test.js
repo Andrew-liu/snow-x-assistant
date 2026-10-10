@@ -112,6 +112,24 @@ test("following 页路径识别", () => {
   assert.equal(P.profilePathToHandle("/home"), null);
 });
 
+test("关/粉比使用关注数除以粉丝数,质量标签继续使用原口径", () => {
+  const u = { followers: 20000, following: 100 };
+  assert.equal(P.followingRatioOf(u), 0.005);
+  assert.equal(P.fmtFollowingRatio(P.followingRatioOf(u)), "0.5%");
+  assert.equal(P.ratioOf(u), 200);
+  assert.equal(P.fmtFollowingRatio(P.followingRatioOf({ followers: 100, following: 250 })), "250%");
+  assert.equal(P.fmtFollowingRatio(P.followingRatioOf({ followers: 100, following: 0 })), "0%");
+  assert.equal(P.fmtFollowingRatio(P.followingRatioOf({ followers: 0, following: 1 })), "∞");
+  assert.equal(P.fmtFollowingRatio(P.followingRatioOf({ followers: 0, following: 0 })), "—");
+  for (const following of [null, undefined, -1, NaN, Infinity]) {
+    assert.equal(P.followingRatioOf({ followers: 100, following }), null);
+  }
+  assert.equal(P.fmtFollowingRatio(0.000001), "<0.01%");
+  const missing = P.extract(user("Missing", { legacy: { followers_count: 100 } })).users[0];
+  assert.equal(missing.following, null);
+  assert.equal(P.followingRatioOf(missing), null);
+});
+
 test("fmt 用万/亿", () => {
   assert.equal(P.fmt(9999), "9999");
   assert.equal(P.fmt(12345), "1.23万");
