@@ -1,0 +1,369 @@
+/* Snow X Assistant
+ * 标签主题由 .sxa-badge / #sxa-tip 上的 data-sxa-skin 决定:
+ *   signal 信号灯 · neon 霓虹 · candy 糖果 · minimal 原生文字 · terminal 终端 · aurora 极光渐变
+ * 每个主题定义流速三档的主色(--sxa-vN-bg)、主色上的文字(--sxa-vN-fg)、直接写在页面底色上的文字色(--sxa-vN-ink)。
+ * 浅色 / 深色由 html[data-sxa-theme] 切换。
+ */
+
+:root {
+  --sxa-ink: #0f1419;
+  --sxa-mute: #536471;
+  --sxa-line: rgba(83, 100, 113, 0.24);
+  --sxa-wash: rgba(15, 20, 25, 0.035);
+  --sxa-card: #ffffff;
+  --sxa-rail: #e6ecf0;
+  --sxa-calm: #00a36c;
+  --sxa-rise: #e66a00;
+  --sxa-hot: #f0002d;
+  --sxa-blue: #1d9bf0;
+  --sxa-shadow: 0 10px 30px rgba(15, 20, 25, 0.14), 0 1px 3px rgba(15, 20, 25, 0.08);
+  --sxa-mono: ui-monospace, "SF Mono", "Cascadia Mono", "JetBrains Mono", Consolas, monospace;
+  --sxa-sans: TwitterChirp, -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+
+  /* 粉丝描边胶囊 */
+  --sxa-f-bd: rgba(15, 20, 25, 0.55);
+  --sxa-f-bg: #ffffff;
+  --sxa-f-ink: #0f1419;
+  --sxa-f-unit: #3e4a55;
+
+  /* 质量标签:文字 / 底 / 描边 */
+  --sxa-t-rel: #0a5fa3;  --sxa-t-rel-bg: #e1f1fd;  --sxa-t-rel-bd: #8ccaf7;
+  --sxa-t-hi: #006b47;   --sxa-t-hi-bg: #dcf7ec;   --sxa-t-hi-bd: #7fdcb6;
+  --sxa-t-warn: #9a4400; --sxa-t-warn-bg: #fff1db; --sxa-t-warn-bd: #f5bd6e;
+  --sxa-t-n: #3e4a55;    --sxa-t-n-bg: #eef1f3;    --sxa-t-n-bd: #c3ccd4;
+}
+html[data-sxa-theme="dark"] {
+  --sxa-ink: #e7e9ea;
+  --sxa-mute: #8b98a5;
+  --sxa-line: rgba(139, 152, 165, 0.3);
+  --sxa-wash: rgba(255, 255, 255, 0.04);
+  --sxa-card: #16181c;
+  --sxa-rail: #2f3336;
+  --sxa-calm: #00d68f;
+  --sxa-rise: #ff9a1f;
+  --sxa-hot: #ff2e55;
+  --sxa-shadow: 0 10px 30px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(255, 255, 255, 0.04);
+
+  --sxa-f-bd: rgba(231, 233, 234, 0.6);
+  --sxa-f-bg: rgba(255, 255, 255, 0.06);
+  --sxa-f-ink: #ffffff;
+  --sxa-f-unit: #c4ccd4;
+
+  --sxa-t-rel: #7cc6ff;  --sxa-t-rel-bg: rgba(29, 155, 240, 0.18); --sxa-t-rel-bd: rgba(29, 155, 240, 0.6);
+  --sxa-t-hi: #4ff0b0;   --sxa-t-hi-bg: rgba(0, 186, 124, 0.18);   --sxa-t-hi-bd: rgba(0, 186, 124, 0.6);
+  --sxa-t-warn: #ffbe55; --sxa-t-warn-bg: rgba(245, 158, 11, 0.18); --sxa-t-warn-bd: rgba(245, 158, 11, 0.6);
+  --sxa-t-n: #d0d7dd;    --sxa-t-n-bg: rgba(255, 255, 255, 0.08);  --sxa-t-n-bd: rgba(255, 255, 255, 0.26);
+}
+
+/* ---------- 流速三档配色(按主题) ---------- */
+
+/* 信号灯(默认):高亮荧光绿 / 亮橙 / 亮红 */
+[data-sxa-skin] {
+  --sxa-v0-bg: #14d38a; --sxa-v0-fg: #00321d; --sxa-v0-ink: #00a86b;
+  --sxa-v1-bg: #ffa000; --sxa-v1-fg: #2e1700; --sxa-v1-ink: #e07800;
+  --sxa-v2-bg: #ff1f4f; --sxa-v2-fg: #ffffff; --sxa-v2-ink: #f0002d;
+  --sxa-v2-glow: rgba(255, 31, 79, 0.55);
+}
+html[data-sxa-theme="dark"] [data-sxa-skin="signal"] {
+  --sxa-v0-bg: #1ef29c; --sxa-v0-ink: #3cf5a9;
+  --sxa-v1-bg: #ffb020; --sxa-v1-ink: #ffbb3d;
+  --sxa-v2-bg: #ff3360; --sxa-v2-ink: #ff5577;
+  --sxa-v2-glow: rgba(255, 51, 96, 0.7);
+}
+
+/* 霓虹:青 / 柠檬黄 / 洋红 */
+[data-sxa-skin="neon"] {
+  --sxa-v0-bg: #00c8f0; --sxa-v0-fg: #002a33; --sxa-v0-ink: #0086a8;
+  --sxa-v1-bg: #f5c800; --sxa-v1-fg: #2b2300; --sxa-v1-ink: #8f7200;
+  --sxa-v2-bg: #ff1fd2; --sxa-v2-fg: #ffffff; --sxa-v2-ink: #c400a0;
+  --sxa-v2-glow: rgba(255, 31, 210, 0.55);
+}
+html[data-sxa-theme="dark"] [data-sxa-skin="neon"] {
+  --sxa-v0-bg: #00e5ff; --sxa-v0-ink: #5cf0ff;
+  --sxa-v1-bg: #ffe600; --sxa-v1-ink: #fff05a;
+  --sxa-v2-bg: #ff2bd6; --sxa-v2-ink: #ff6fe4;
+  --sxa-v2-glow: rgba(255, 43, 214, 0.75);
+}
+
+/* 糖果:明亮的马卡龙色块 */
+[data-sxa-skin="candy"] {
+  --sxa-v0-bg: #5ee8a8; --sxa-v0-fg: #003d22; --sxa-v0-ink: #00995a;
+  --sxa-v1-bg: #ffc04d; --sxa-v1-fg: #4a2600; --sxa-v1-ink: #d17a00;
+  --sxa-v2-bg: #ff5c8d; --sxa-v2-fg: #ffffff; --sxa-v2-ink: #f0306e;
+  --sxa-v2-glow: rgba(255, 92, 141, 0.5);
+}
+
+/* 原生文字:无边框,直接用亮色文字 */
+[data-sxa-skin="minimal"] {
+  --sxa-v0-bg: #00b374; --sxa-v0-fg: #ffffff; --sxa-v0-ink: #00a86b;
+  --sxa-v1-bg: #f57c00; --sxa-v1-fg: #ffffff; --sxa-v1-ink: #f07000;
+  --sxa-v2-bg: #ff1744; --sxa-v2-fg: #ffffff; --sxa-v2-ink: #ff1744;
+}
+html[data-sxa-theme="dark"] [data-sxa-skin="minimal"] {
+  --sxa-v0-ink: #2ee59d; --sxa-v1-ink: #ffb020; --sxa-v2-ink: #ff4d6d;
+}
+
+/* 终端:深色块 + 等宽 + 亮色字 */
+[data-sxa-skin="terminal"] {
+  --sxa-v0-bg: #3fe07a; --sxa-v0-fg: #04140a; --sxa-v0-ink: #3fe07a;
+  --sxa-v1-bg: #ffc53d; --sxa-v1-fg: #1a1200; --sxa-v1-ink: #ffc53d;
+  --sxa-v2-bg: #ff5f56; --sxa-v2-fg: #1a0302; --sxa-v2-ink: #ff6b62;
+  --sxa-v2-glow: rgba(255, 95, 86, 0.55);
+}
+
+/* 极光渐变:渐变填充,爆款带呼吸光晕 */
+[data-sxa-skin="aurora"] {
+  --sxa-v0-bg: #00b4ff; --sxa-v0-fg: #ffffff; --sxa-v0-ink: #0090dd;
+  --sxa-v1-bg: #ff8a00; --sxa-v1-fg: #ffffff; --sxa-v1-ink: #e86f00;
+  --sxa-v2-bg: #ff2d7a; --sxa-v2-fg: #ffffff; --sxa-v2-ink: #f0186a;
+  --sxa-v2-glow: rgba(255, 45, 122, 0.6);
+  --sxa-g0: linear-gradient(135deg, #00e0ff, #2f6bff);
+  --sxa-g1: linear-gradient(135deg, #ffcc00, #ff5e00);
+  --sxa-g2: linear-gradient(135deg, #ff0080, #ff8c00);
+}
+
+/* ---------- 标签基础结构 ---------- */
+.sxa-badge {
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+  gap: 4px;
+  margin-left: 6px;
+  vertical-align: middle;
+  white-space: nowrap;
+  cursor: default;
+  font: 600 12px/1 var(--sxa-sans);
+}
+.sxa-line { display: flex; padding-top: 3px; min-width: 0; }
+.sxa-line .sxa-badge { margin-left: 0; }
+
+.sxa-p {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  box-sizing: border-box;
+  height: 20px;
+  padding: 0 7px;
+  border: 1px solid transparent;
+  border-radius: 999px;
+}
+
+.sxa-n {
+  font-family: var(--sxa-mono);
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+}
+.sxa-u { font-size: 10.5px; font-weight: 600; }
+
+/* 粉丝 / 比率 */
+.sxa-f, .sxa-r { border: 1.5px solid var(--sxa-f-bd); background: var(--sxa-f-bg); color: var(--sxa-f-ink); }
+.sxa-f .sxa-u, .sxa-r .sxa-u { color: var(--sxa-f-unit); }
+.sxa-dot { width: 7px; height: 7px; margin-right: 1px; border-radius: 50%; background: var(--sxa-tier, var(--sxa-f-unit)); }
+.sxa-f[data-tier="1"] { --sxa-tier: #1d9bf0; }
+.sxa-f[data-tier="2"] { --sxa-tier: #7856ff; }
+.sxa-f[data-tier="3"] { --sxa-tier: #f91880; }
+.sxa-f[data-tier="4"] { --sxa-tier: #ff7a00; }
+
+/* 流速:每档把主题色收进 --lv 系列变量,各主题只写结构 */
+.sxa-ic { width: 12px; height: 12px; flex: none; }
+.sxa-ic.big { width: 18px; height: 18px; }
+.sxa-v[data-lv="0"] { --lv: var(--sxa-v0-bg); --lv-fg: var(--sxa-v0-fg); --lv-ink: var(--sxa-v0-ink); --lv-g: var(--sxa-g0); }
+.sxa-v[data-lv="1"] { --lv: var(--sxa-v1-bg); --lv-fg: var(--sxa-v1-fg); --lv-ink: var(--sxa-v1-ink); --lv-g: var(--sxa-g1); }
+.sxa-v[data-lv="2"] { --lv: var(--sxa-v2-bg); --lv-fg: var(--sxa-v2-fg); --lv-ink: var(--sxa-v2-ink); --lv-g: var(--sxa-g2); }
+.sxa-v {
+  height: 21px;
+  padding: 0 8px 0 7px;
+  font-size: 12.5px;
+  background: var(--lv);
+  color: var(--lv-fg);
+}
+.sxa-v .sxa-u { opacity: 0.85; }
+.sxa-v[data-lv="1"] { box-shadow: 0 1px 6px color-mix(in srgb, var(--lv) 45%, transparent); }
+.sxa-v[data-lv="2"] {
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--lv) 30%, transparent), 0 2px 12px var(--sxa-v2-glow);
+}
+
+/* 质量标签 */
+.sxa-tag { height: 19px; padding: 0 7px; font-size: 11.5px; font-weight: 700; }
+.sxa-tag.rel { color: var(--sxa-t-rel); background: var(--sxa-t-rel-bg); border-color: var(--sxa-t-rel-bd); }
+.sxa-tag.hi { color: var(--sxa-t-hi); background: var(--sxa-t-hi-bg); border-color: var(--sxa-t-hi-bd); }
+.sxa-tag.warn { color: var(--sxa-t-warn); background: var(--sxa-t-warn-bg); border-color: var(--sxa-t-warn-bd); }
+.sxa-tag.n { color: var(--sxa-t-n); background: var(--sxa-t-n-bg); border-color: var(--sxa-t-n-bd); }
+
+/* ---------- 主题结构差异 ---------- */
+
+/* 霓虹:描边发光,底色只是一层淡色 */
+.sxa-badge[data-sxa-skin="neon"] .sxa-p { border-radius: 6px; }
+.sxa-badge[data-sxa-skin="neon"] .sxa-v {
+  border: 1.5px solid var(--lv);
+  background: color-mix(in srgb, var(--lv) 14%, transparent);
+  color: var(--lv-ink);
+  box-shadow: 0 0 8px color-mix(in srgb, var(--lv) 55%, transparent), inset 0 0 6px color-mix(in srgb, var(--lv) 25%, transparent);
+}
+html[data-sxa-theme="dark"] .sxa-badge[data-sxa-skin="neon"] .sxa-v { text-shadow: 0 0 6px color-mix(in srgb, var(--lv) 80%, transparent); }
+.sxa-badge[data-sxa-skin="neon"] .sxa-v[data-lv="2"] {
+  box-shadow: 0 0 12px var(--sxa-v2-glow), 0 0 2px var(--lv), inset 0 0 8px color-mix(in srgb, var(--lv) 35%, transparent);
+}
+.sxa-badge[data-sxa-skin="neon"] .sxa-f,
+.sxa-badge[data-sxa-skin="neon"] .sxa-r { background: transparent; }
+.sxa-badge[data-sxa-skin="neon"] .sxa-tag { background: transparent; }
+
+/* 糖果:无描边方圆角色块 */
+.sxa-badge[data-sxa-skin="candy"] .sxa-p { border-color: transparent; border-radius: 7px; }
+.sxa-badge[data-sxa-skin="candy"] .sxa-f,
+.sxa-badge[data-sxa-skin="candy"] .sxa-r { background: #ece9ff; color: #3b2fa0; }
+.sxa-badge[data-sxa-skin="candy"] .sxa-f .sxa-u,
+.sxa-badge[data-sxa-skin="candy"] .sxa-r .sxa-u { color: #6a5fc8; }
+html[data-sxa-theme="dark"] .sxa-badge[data-sxa-skin="candy"] .sxa-f,
+html[data-sxa-theme="dark"] .sxa-badge[data-sxa-skin="candy"] .sxa-r { background: #c9c1ff; color: #1f1666; }
+html[data-sxa-theme="dark"] .sxa-badge[data-sxa-skin="candy"] .sxa-f .sxa-u,
+html[data-sxa-theme="dark"] .sxa-badge[data-sxa-skin="candy"] .sxa-r .sxa-u { color: #3d3399; }
+.sxa-badge[data-sxa-skin="candy"] .sxa-v { box-shadow: 0 2px 0 color-mix(in srgb, var(--lv) 55%, #000 10%); }
+.sxa-badge[data-sxa-skin="candy"] .sxa-v[data-lv="2"] { box-shadow: 0 2px 0 #c2185b, 0 3px 12px var(--sxa-v2-glow); }
+
+/* 原生文字:去掉所有外框,用 · 分隔,流速只上色加粗 */
+.sxa-badge[data-sxa-skin="minimal"] { gap: 0; }
+.sxa-badge[data-sxa-skin="minimal"] .sxa-p {
+  height: auto; padding: 0; border: 0; border-radius: 0; background: none; box-shadow: none;
+}
+.sxa-badge[data-sxa-skin="minimal"] .sxa-p + .sxa-p::before {
+  content: "·"; margin: 0 6px; color: var(--sxa-mute); font-weight: 700;
+}
+.sxa-badge[data-sxa-skin="minimal"] .sxa-f,
+.sxa-badge[data-sxa-skin="minimal"] .sxa-r { color: var(--sxa-ink); }
+.sxa-badge[data-sxa-skin="minimal"] .sxa-v { color: var(--lv-ink); font-size: 13px; }
+.sxa-badge[data-sxa-skin="minimal"] .sxa-v .sxa-ic { width: 13px; height: 13px; }
+.sxa-badge[data-sxa-skin="minimal"] .sxa-v[data-lv="2"] { text-shadow: 0 0 10px var(--sxa-v2-glow, transparent); }
+.sxa-badge[data-sxa-skin="minimal"] .sxa-tag { font-size: 12px; }
+
+/* 终端:黑色方块,全部等宽 */
+.sxa-badge[data-sxa-skin="terminal"] { font-family: var(--sxa-mono); }
+.sxa-badge[data-sxa-skin="terminal"] .sxa-p {
+  border-radius: 3px; border: 1px solid #30363d; background: #0d1117; color: #c9d1d9; box-shadow: none;
+}
+.sxa-badge[data-sxa-skin="terminal"] .sxa-f .sxa-u,
+.sxa-badge[data-sxa-skin="terminal"] .sxa-r .sxa-u { color: #8b949e; }
+.sxa-badge[data-sxa-skin="terminal"] .sxa-v { color: var(--lv-ink); border-color: color-mix(in srgb, var(--lv) 70%, #30363d); }
+.sxa-badge[data-sxa-skin="terminal"] .sxa-v[data-lv="2"] { box-shadow: 0 0 10px var(--sxa-v2-glow); }
+.sxa-badge[data-sxa-skin="terminal"] .sxa-tag.rel { color: #58a6ff; }
+.sxa-badge[data-sxa-skin="terminal"] .sxa-tag.hi { color: #3fe07a; }
+.sxa-badge[data-sxa-skin="terminal"] .sxa-tag.warn { color: #ffc53d; }
+.sxa-badge[data-sxa-skin="terminal"] .sxa-tag.n { color: #8b949e; }
+
+/* 极光渐变 */
+.sxa-badge[data-sxa-skin="aurora"] .sxa-v {
+  background: var(--lv-g);
+  color: #ffffff;
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.22);
+}
+.sxa-badge[data-sxa-skin="aurora"] .sxa-v[data-lv="2"] { animation: sxa-breathe 1.8s ease-in-out infinite; }
+.sxa-badge[data-sxa-skin="aurora"] .sxa-f,
+.sxa-badge[data-sxa-skin="aurora"] .sxa-r {
+  border-color: color-mix(in srgb, #7856ff 55%, transparent);
+  background: color-mix(in srgb, #7856ff 10%, transparent);
+}
+@keyframes sxa-breathe {
+  0%, 100% { box-shadow: 0 0 0 2px rgba(255, 45, 122, 0.25), 0 2px 8px var(--sxa-v2-glow); }
+  50% { box-shadow: 0 0 0 3px rgba(255, 45, 122, 0.35), 0 2px 18px var(--sxa-v2-glow); }
+}
+
+/* 小信号灯圆点,弹窗阈值等处使用 */
+.sxa-lamp { display: inline-block; width: 10px; height: 10px; border-radius: 50%; flex: none; }
+.sxa-lamp[data-lv="0"] { background: var(--sxa-v0-bg); }
+.sxa-lamp[data-lv="1"] { background: var(--sxa-v1-bg); }
+.sxa-lamp[data-lv="2"] { background: var(--sxa-v2-bg); box-shadow: 0 0 6px var(--sxa-v2-glow); }
+
+/* ---------- 悬停详情卡 ---------- */
+#sxa-tip {
+  position: fixed;
+  z-index: 2147483646;
+  display: none;
+  width: 272px;
+  border-radius: 14px;
+  background: var(--sxa-card);
+  color: var(--sxa-ink);
+  box-shadow: var(--sxa-shadow);
+  font: 12px/1.45 var(--sxa-sans);
+  pointer-events: none;
+  overflow: hidden;
+}
+#sxa-tip.in { animation: sxa-pop 0.14s ease-out; }
+@keyframes sxa-pop { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+
+#sxa-tip > * { padding-left: 14px; padding-right: 14px; }
+#sxa-tip > :first-child { padding-top: 12px; }
+#sxa-tip > :last-child { padding-bottom: 12px; }
+
+.sxa-tip-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.sxa-who { display: flex; flex-direction: column; min-width: 0; }
+.sxa-who b { font-size: 14px; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sxa-who span { color: var(--sxa-mute); }
+
+.sxa-pill {
+  flex: none;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--sxa-blue);
+  background: color-mix(in srgb, var(--sxa-blue) 12%, transparent);
+}
+
+.sxa-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-top: 10px; }
+.sxa-stats.five { grid-template-columns: repeat(5, 1fr); gap: 4px; }
+.sxa-st { display: flex; flex-direction: column; gap: 1px; padding: 6px 8px; border-radius: 8px; background: var(--sxa-wash); }
+.sxa-stats.five .sxa-st { padding: 5px 4px; align-items: center; }
+.sxa-st b { font-size: 15px; }
+.sxa-stats.five .sxa-st b { font-size: 12.5px; }
+.sxa-st span { font-size: 11px; color: var(--sxa-mute); }
+
+.sxa-kvs { margin-top: 8px; }
+.sxa-kv { display: flex; justify-content: space-between; gap: 12px; padding: 3px 0; }
+.sxa-kv span { color: var(--sxa-mute); }
+.sxa-kv b { font-weight: 600; text-align: right; font-variant-numeric: tabular-nums; }
+.sxa-kv b.up { color: var(--sxa-calm); }
+.sxa-kv b.down { color: var(--sxa-hot); }
+.sxa-kv b.dim { color: var(--sxa-mute); font-weight: 400; }
+
+.sxa-tw { margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--sxa-line); }
+#sxa-tip > .sxa-tw:first-child { margin-top: 0; border-top: 0; }
+.sxa-read { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.sxa-read-n { display: flex; align-items: baseline; gap: 6px; }
+.sxa-read-n .sxa-ic { align-self: center; }
+.sxa-read-n b { font-size: 20px; line-height: 1; }
+.sxa-read-n span { color: var(--sxa-mute); font-size: 11px; }
+.sxa-read[data-lv="0"] { --sxa-lv: var(--sxa-v0-bg); --sxa-lv-ink: var(--sxa-v0-ink); --sxa-lv-fg: var(--sxa-v0-fg); }
+.sxa-read[data-lv="1"] { --sxa-lv: var(--sxa-v1-bg); --sxa-lv-ink: var(--sxa-v1-ink); --sxa-lv-fg: var(--sxa-v1-fg); }
+.sxa-read[data-lv="2"] { --sxa-lv: var(--sxa-v2-bg); --sxa-lv-ink: var(--sxa-v2-ink); --sxa-lv-fg: var(--sxa-v2-fg); }
+.sxa-read .sxa-ic { color: var(--sxa-lv-ink); }
+.sxa-read .sxa-read-n b { color: var(--sxa-lv-ink); }
+.sxa-pill.lv { color: var(--sxa-lv-fg); background: var(--sxa-lv); font-weight: 800; }
+.sxa-read[data-lv="2"] .sxa-pill.lv { box-shadow: 0 2px 8px var(--sxa-v2-glow); }
+
+.sxa-score { display: flex; align-items: center; gap: 8px; margin-top: 10px; }
+.sxa-score span { font-size: 11px; color: var(--sxa-mute); }
+.sxa-score b { font-size: 12px; min-width: 22px; text-align: right; }
+.sxa-track {
+  position: relative;
+  flex: 1;
+  height: 4px;
+  border-radius: 2px;
+  overflow: hidden;
+  background: linear-gradient(90deg, var(--sxa-v0-bg), var(--sxa-v1-bg) 55%, var(--sxa-v2-bg));
+}
+.sxa-track i { position: absolute; top: 0; right: 0; bottom: 0; background: var(--sxa-rail); }
+
+.sxa-foot { margin-top: 8px; font-size: 11px; color: var(--sxa-mute); }
+
+#sxa-hud {
+  position: fixed; left: 8px; bottom: 8px; z-index: 2147483646;
+  padding: 4px 8px; border-radius: 6px;
+  font: 11px/1.4 var(--sxa-mono); color: #fff; background: rgba(0, 0, 0, 0.75);
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #sxa-tip.in { animation: none; }
+  .sxa-badge[data-sxa-skin="aurora"] .sxa-v[data-lv="2"] { animation: none; }
+}

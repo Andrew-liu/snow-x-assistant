@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <title>Snow X Assistant</title>
+  <link rel="stylesheet" href="content.css">
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <header class="top">
+    <img src="icons/icon48.png" alt="" width="28" height="28">
+    <div class="brand">
+      <h1>Snow X Assistant</h1>
+      <span id="ver" class="ver"></span>
+    </div>
+    <span class="local" title="只读取 X 页面已经加载的数据">本地运行</span>
+  </header>
+
+  <nav class="tabs" role="tablist">
+    <button type="button" role="tab" id="tab-tags" data-tab="tags" aria-controls="panel-tags">标签</button>
+    <button type="button" role="tab" id="tab-mutual" data-tab="mutual" aria-controls="panel-mutual">互关清理<i id="mutualDot" class="tab-dot" hidden></i></button>
+  </nav>
+
+  <!-- ========== 标签 ========== -->
+  <div class="panel" id="panel-tags" role="tabpanel" aria-labelledby="tab-tags">
+    <div class="preview" aria-label="标签预览">
+      <div class="mock">
+        <span class="mock-avatar"></span>
+        <div class="mock-body">
+          <div class="mock-head">
+            <b>Snow</b><span>@snow · 4小时</span>
+            <span id="previewSlot" class="slot"></span>
+          </div>
+          <div class="mock-lines"><i></i><i></i></div>
+        </div>
+      </div>
+      <p id="previewEmpty" class="preview-empty" hidden>流速和账号标签都已关闭</p>
+    </div>
+
+    <section class="card">
+      <div class="row col">
+        <span class="label"><b>标签主题</b><small>流速和账号标签共用,悬停卡跟随</small></span>
+        <div id="skins" class="skins" role="radiogroup" aria-label="标签主题"></div>
+      </div>
+    </section>
+
+    <section class="card">
+      <label class="row head">
+        <span class="label"><b>推文流速</b><small>浏览量 ÷ 发布小时数,独立于账号标签</small></span>
+        <input type="checkbox" class="switch" data-key="showVelocity">
+      </label>
+      <div class="group" data-depends="showVelocity">
+        <div class="row">
+          <span class="label">档位阈值<small>浏览/小时</small></span>
+          <span class="thresholds" id="thresholds">
+            <label><i class="sxa-lamp" data-lv="1" title="上升"></i><input type="number" min="1" step="100" data-num="velocityTrending" aria-label="上升阈值"></label>
+            <label><i class="sxa-lamp" data-lv="2" title="爆款"></i><input type="number" min="2" step="1000" data-num="velocityViral" aria-label="爆款阈值"></label>
+          </span>
+        </div>
+      </div>
+    </section>
+
+    <section class="card">
+      <label class="row head">
+        <span class="label"><b>账号标签</b><small>粉丝数、粉丝/关注比、质量标签</small></span>
+        <input type="checkbox" class="switch" data-key="tagsEnabled">
+      </label>
+      <div class="group" data-depends="tagsEnabled">
+        <label class="row"><span class="label">粉丝数</span><input type="checkbox" class="switch" data-key="showFollowers"></label>
+        <label class="row"><span class="label">粉丝/关注比</span><input type="checkbox" class="switch" data-key="showRatio"></label>
+        <label class="row"><span class="label">粉丝量级圆点</span><input type="checkbox" class="switch" data-key="tierColors"></label>
+        <div class="row col">
+          <span class="label">质量标签</span>
+          <div class="chips">
+            <label><input type="checkbox" data-tag="relation"><span>互关</span></label>
+            <label><input type="checkbox" data-tag="bigV"><span>大V</span></label>
+            <label><input type="checkbox" data-tag="engaged"><span>高互动</span></label>
+            <label><input type="checkbox" data-tag="farm"><span>疑似互粉号</span></label>
+            <label><input type="checkbox" data-tag="newAcct"><span>新号</span></label>
+            <label><input type="checkbox" data-tag="lowActive"><span>低活跃</span></label>
+            <label><input type="checkbox" data-tag="oldAcct"><span>老号</span></label>
+          </div>
+        </div>
+        <div class="row col">
+          <span class="label">每条最多显示</span>
+          <div class="seg">
+            <label><input type="radio" name="maxTags" data-key="maxTags" value="0"><span>不显示</span></label>
+            <label><input type="radio" name="maxTags" data-key="maxTags" value="1"><span>1</span></label>
+            <label><input type="radio" name="maxTags" data-key="maxTags" value="2"><span>2</span></label>
+            <label><input type="radio" name="maxTags" data-key="maxTags" value="3"><span>3</span></label>
+            <label><input type="radio" name="maxTags" data-key="maxTags" value="7"><span>全部</span></label>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="card">
+      <label class="row"><span class="label">悬停详情卡</span><input type="checkbox" class="switch" data-key="hoverCard"></label>
+      <div class="row col">
+        <span class="label">推文里的位置</span>
+        <div class="seg">
+          <label><input type="radio" name="layout" data-key="layout" value="auto"><span>自动</span></label>
+          <label><input type="radio" name="layout" data-key="layout" value="inline"><span>跟在名字后</span></label>
+          <label><input type="radio" name="layout" data-key="layout" value="below"><span>单独一行</span></label>
+        </div>
+      </div>
+      <label class="row"><span class="label">调试信息条</span><input type="checkbox" class="switch" data-key="debug"></label>
+    </section>
+  </div>
+
+  <!-- ========== 互关清理 ========== -->
+  <div class="panel" id="panel-mutual" role="tabpanel" aria-labelledby="tab-mutual" hidden>
+    <section class="card">
+      <label class="row head">
+        <span class="label"><b>互关清理</b><small>在你的“正在关注”页批量取关未回关的人</small></span>
+        <input type="checkbox" class="switch" data-key="mutualEnabled">
+      </label>
+      <div class="group" data-depends="mutualEnabled">
+        <div class="row col">
+          <span class="label">每次取关间隔<small>会再叠加随机抖动</small></span>
+          <div class="seg">
+            <label><input type="radio" name="delay" data-num-radio="mutualDelayMs" value="1000"><span>1 秒</span></label>
+            <label><input type="radio" name="delay" data-num-radio="mutualDelayMs" value="1500"><span>1.5 秒</span></label>
+            <label><input type="radio" name="delay" data-num-radio="mutualDelayMs" value="3000"><span>3 秒</span></label>
+            <label><input type="radio" name="delay" data-num-radio="mutualDelayMs" value="5000"><span>5 秒</span></label>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="card steps">
+      <p class="steps-title">使用方法</p>
+      <ol>
+        <li>打开 <code>x.com/你的用户名/following</code>,工具栏出现在“正在关注”标签栏下方。</li>
+        <li>默认只列出没回关你的人,勾选或“全选”后点“取消关注所选”。</li>
+        <li>确认后按间隔逐个取关,可随时停止。单次最多 100 人。</li>
+      </ol>
+      <p class="note">取关通过点击 X 页面自带按钮完成,不调用 X 接口。间隔越长越不容易被限流。</p>
+    </section>
+  </div>
+
+  <footer id="foot">Snow X Assistant</footer>
+  <script src="lib/parse.js"></script>
+  <script src="lib/badge.js"></script>
+  <script src="popup.js"></script>
+</body>
+</html>

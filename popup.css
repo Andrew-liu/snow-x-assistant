@@ -1,0 +1,160 @@
+/* 弹窗沿用 content.css 的变量,与页面内标签同一套视觉 */
+* { box-sizing: border-box; }
+html { --pop-bg: #f7f9f9; }
+html[data-sxa-theme="dark"] { --pop-bg: #000000; }
+
+body {
+  width: 360px;
+  margin: 0;
+  padding: 14px;
+  font: 13px/1.45 var(--sxa-sans);
+  color: var(--sxa-ink);
+  background: var(--pop-bg);
+}
+
+/* 头部 */
+.top { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+.top img { border-radius: 7px; }
+.brand { display: flex; align-items: baseline; gap: 6px; flex: 1; min-width: 0; }
+h1 { margin: 0; font-size: 15px; font-weight: 700; letter-spacing: -0.01em; }
+.ver { font: 500 11px var(--sxa-mono); color: var(--sxa-mute); }
+.local {
+  display: inline-flex; align-items: center; gap: 5px;
+  font-size: 11px; color: var(--sxa-calm);
+}
+.local::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--sxa-calm); }
+
+/* 预览:一条模拟推文,标签由同一个构建函数生成 */
+.preview {
+  position: relative;
+  margin-bottom: 12px;
+  padding: 12px;
+  border: 1px solid var(--sxa-line);
+  border-radius: 14px;
+  background: var(--sxa-card);
+}
+.mock { display: flex; gap: 10px; }
+.mock-avatar { flex: none; width: 34px; height: 34px; border-radius: 50%; background: linear-gradient(135deg, #1d9bf0, #7856ff); }
+.mock-body { flex: 1; min-width: 0; }
+.mock-head { display: flex; align-items: center; flex-wrap: wrap; gap: 4px; min-height: 22px; }
+.mock-head b { font-size: 14px; }
+.mock-head > span:not(.slot) { color: var(--sxa-mute); }
+.slot { display: flex; min-width: 0; max-width: 100%; }
+.slot .sxa-badge { flex-wrap: wrap; flex-shrink: 1; row-gap: 4px; margin-left: 0; }
+.mock-lines { display: flex; flex-direction: column; gap: 6px; margin-top: 8px; }
+.mock-lines i { display: block; height: 7px; border-radius: 4px; background: var(--sxa-wash); }
+.mock-lines i:first-child { width: 92%; }
+.mock-lines i:last-child { width: 58%; }
+.preview-empty { margin: 8px 0 0 44px; font-size: 12px; color: var(--sxa-mute); }
+
+/* 卡片与行 */
+.card { margin-bottom: 10px; padding: 2px 12px; border-radius: 14px; background: var(--sxa-card); border: 1px solid var(--sxa-line); }
+.row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 9px 0; }
+.row + .row { border-top: 1px solid var(--sxa-line); }
+.row.head { padding: 11px 0; }
+.row.head b { font-size: 14px; }
+.row.col { flex-direction: column; align-items: stretch; gap: 7px; }
+.row.sub { padding-left: 12px; }
+.label { display: flex; flex-direction: column; min-width: 0; }
+.label small { font-size: 11.5px; color: var(--sxa-mute); }
+.group { border-top: 1px solid var(--sxa-line); transition: opacity 0.15s; }
+.off { opacity: 0.4; }
+.note { margin: 0 0 10px; font-size: 11.5px; color: var(--sxa-mute); }
+
+/* 开关 */
+.switch {
+  appearance: none; flex: none; position: relative; width: 36px; height: 20px; margin: 0;
+  border-radius: 10px; background: var(--sxa-rail); cursor: pointer; transition: background 0.15s;
+}
+.switch::after {
+  content: ""; position: absolute; top: 2px; left: 2px; width: 16px; height: 16px;
+  border-radius: 50%; background: #fff; box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3); transition: transform 0.15s;
+}
+.switch:checked { background: var(--sxa-blue); }
+.switch:checked::after { transform: translateX(16px); }
+.switch:disabled { cursor: not-allowed; }
+.switch:focus-visible, .seg input:focus-visible + span, .chips input:focus-visible + span, button:focus-visible, .thresholds input:focus-visible {
+  outline: 2px solid var(--sxa-blue); outline-offset: 2px;
+}
+
+/* 质量标签多选:选中时文字带上它在胶囊里的颜色 */
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chips label { cursor: pointer; }
+.chips input { position: absolute; opacity: 0; pointer-events: none; }
+.chips span {
+  display: inline-block; padding: 3px 10px; border: 1px solid var(--sxa-line); border-radius: 999px;
+  font-size: 12px; font-weight: 600; color: var(--sxa-mute); transition: all 0.12s;
+}
+.chips input:checked + span { color: var(--sxa-ink); background: var(--sxa-wash); border-color: var(--sxa-mute); }
+.chips input[data-tag="relation"]:checked + span { color: var(--sxa-blue); }
+.chips input[data-tag="bigV"]:checked + span, .chips input[data-tag="engaged"]:checked + span { color: var(--sxa-calm); }
+.chips input[data-tag="farm"]:checked + span, .chips input[data-tag="newAcct"]:checked + span, .chips input[data-tag="lowActive"]:checked + span { color: var(--sxa-rise); }
+
+/* 分段选择 */
+.seg { display: flex; padding: 2px; border-radius: 999px; background: var(--sxa-wash); border: 1px solid var(--sxa-line); }
+.seg label { flex: 1; cursor: pointer; }
+.seg input { position: absolute; opacity: 0; pointer-events: none; }
+.seg span {
+  display: block; padding: 4px 0; border-radius: 999px; text-align: center;
+  font-size: 12px; font-weight: 600; color: var(--sxa-mute); transition: all 0.12s;
+}
+.seg input:checked + span { color: var(--sxa-ink); background: var(--sxa-card); box-shadow: 0 1px 3px rgba(15, 20, 25, 0.15); }
+
+/* 阈值输入:前面放对应档位的信号条 */
+.thresholds { display: inline-flex; gap: 8px; }
+.thresholds label { display: inline-flex; align-items: center; gap: 5px; }
+.thresholds input {
+  width: 70px; padding: 4px 6px; border: 1px solid var(--sxa-line); border-radius: 8px;
+  font: 600 12px var(--sxa-mono); color: var(--sxa-ink); background: var(--sxa-wash); text-align: right;
+}
+
+button.danger {
+  height: 26px; padding: 0 12px; border: 1px solid var(--sxa-line); border-radius: 999px;
+  font: 600 12px var(--sxa-sans); color: var(--sxa-hot); background: transparent; cursor: pointer;
+}
+button.danger:hover { background: color-mix(in srgb, var(--sxa-hot) 8%, transparent); }
+button.danger.armed { color: #fff; background: var(--sxa-hot); border-color: var(--sxa-hot); }
+
+/* Tab */
+.tabs {
+  display: flex; gap: 4px; margin-bottom: 12px; padding: 3px;
+  border: 1px solid var(--sxa-line); border-radius: 12px; background: var(--sxa-card);
+}
+.tabs button {
+  flex: 1; display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  height: 30px; border: 0; border-radius: 9px; background: transparent; cursor: pointer;
+  font: 700 13px var(--sxa-sans); color: var(--sxa-mute); transition: all 0.12s;
+}
+.tabs button:hover { color: var(--sxa-ink); }
+.tabs button[aria-selected="true"] { color: #fff; background: var(--sxa-blue); }
+.tab-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--sxa-calm); }
+.tabs button[aria-selected="true"] .tab-dot { background: #fff; }
+
+/* 主题卡片 */
+.skins { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.skin { position: relative; cursor: pointer; }
+.skin input { position: absolute; opacity: 0; pointer-events: none; }
+.skin-body {
+  display: flex; flex-direction: column; gap: 7px; height: 100%; padding: 8px 9px 9px;
+  border: 1.5px solid var(--sxa-line); border-radius: 11px; background: var(--pop-bg); transition: border-color 0.12s, box-shadow 0.12s;
+}
+.skin:hover .skin-body { border-color: var(--sxa-mute); }
+.skin input:checked + .skin-body { border-color: var(--sxa-blue); box-shadow: 0 0 0 3px color-mix(in srgb, var(--sxa-blue) 18%, transparent); }
+.skin input:focus-visible + .skin-body { outline: 2px solid var(--sxa-blue); outline-offset: 2px; }
+.skin-name { display: flex; justify-content: space-between; font-size: 12px; font-weight: 700; }
+.skin input:checked + .skin-body .skin-name::after { content: "使用中"; font-size: 10.5px; color: var(--sxa-blue); }
+.skin-body .sxa-badge { flex-wrap: wrap; row-gap: 5px; margin-left: 0; white-space: nowrap; }
+
+/* 互关清理 Tab 说明 */
+.steps { padding: 10px 12px; }
+.steps-title { margin: 0 0 4px; font-weight: 700; }
+.steps ol { margin: 0 0 8px; padding-left: 18px; font-size: 12px; }
+.steps li + li { margin-top: 4px; }
+.steps code { font: 600 11px var(--sxa-mono); padding: 1px 4px; border-radius: 4px; background: var(--sxa-wash); }
+.steps .note { margin: 0; }
+
+footer { margin-top: 2px; font-size: 11px; color: var(--sxa-mute); text-align: center; }
+
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; }
+}
