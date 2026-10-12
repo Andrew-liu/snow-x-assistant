@@ -82,7 +82,10 @@ test("mergeSettings 校正非法值并保留标签开关", () => {
   assert.equal(s.layout, "auto");
   assert.equal(s.maxTags, 7);
   assert.ok(s.velocityTrending < s.velocityHot && s.velocityHot < s.velocityViral);
-  assert.deepEqual([s.velocityTrending, s.velocityHot, s.velocityViral], [1000, 5000, 10000]);
+  // 乱序时只抬高冲突的高档,保留用户填的升温值
+  assert.deepEqual([s.velocityTrending, s.velocityHot, s.velocityViral], [5000, 5001, 5002]);
+  const keep = P.mergeSettings({ velocityTrending: 6000, velocityHot: 5000, velocityViral: 20000 });
+  assert.deepEqual([keep.velocityTrending, keep.velocityHot, keep.velocityViral], [6000, 6001, 20000]);
   const ok = P.mergeSettings({ velocityTrending: 2000, velocityHot: 6000, velocityViral: 20000 });
   assert.deepEqual([ok.velocityTrending, ok.velocityHot, ok.velocityViral], [2000, 6000, 20000]);
   assert.equal(s.mutualDelayMs, 800);
@@ -112,8 +115,99 @@ test("following 页路径识别", () => {
   assert.equal(P.profilePathToHandle("/home"), null);
 });
 
+test("关/粉比使用关注数除以粉丝数,质量标签继续使用原口径", () => {
+  const u = { followers: 20000, following: 100 };
+  assert.equal(P.followingRatioOf(u), 0.005);
+  assert.equal(P.fmtFollowingRatio(P.followingRatioOf(u)), "0.5%");
+  assert.equal(P.ratioOf(u), 200);
+  assert.equal(P.fmtFollowingRatio(P.followingRatioOf({ followers: 100, following: 250 })), "250%");
+  assert.equal(P.fmtFollowingRatio(P.followingRatioOf({ followers: 100, following: 0 })), "0%");
+  assert.equal(P.fmtFollowingRatio(P.followingRatioOf({ followers: 0, following: 1 })), "∞");
+  assert.equal(P.fmtFollowingRatio(P.followingRatioOf({ followers: 0, following: 0 })), "—");
+  for (const following of [null, undefined, -1, NaN, Infinity]) {
+    assert.equal(P.followingRatioOf({ followers: 100, following }), null);
+  }
+  assert.equal(P.fmtFollowingRatio(0.000001), "<0.01%");
+  const missing = P.extract(user("Missing", { legacy: { followers_count: 100 } })).users[0];
+  assert.equal(missing.following, null);
+  assert.equal(P.followingRatioOf(missing), null);
+});
+
 test("fmt 用万/亿", () => {
   assert.equal(P.fmt(9999), "9999");
   assert.equal(P.fmt(12345), "1.23万");
   assert.equal(P.fmt(250000000), "2.5亿");
+});
+
+test("thresholdErrors 只标出不合法的那一项", () => {
+  assert.deepEqual(P.thresholdErrors(1000, 5000, 10000), []);
+  assert.deepEqual(P.thresholdErrors(6000, 5000, 10000), ["velocityHot"]);
+  assert.deepEqual(P.thresholdErrors(1000, 5000, 5000), ["velocityViral"]);
+  assert.deepEqual(P.thresholdErrors(0, 5000, 10000), ["velocityTrending"]);
+  assert.deepEqual(P.thresholdErrors(1000, NaN, 10000), ["velocityHot"]);
+  assert.deepEqual(P.thresholdErrors(1.5, 5000, 10000), ["velocityTrending"]);
+});
+
+test("fmtVel 四档默认显示为 500 / 1k / 5k / 1万", () => {
+  assert.deepEqual([500, 1000, 5000, 10000].map(P.fmtVel), ["500", "1k", "5k", "1万"]);
+  assert.equal(P.fmtVel(2350), "2.3k");
+  assert.equal(P.fmtVel(4999), "4.9k");
+  assert.equal(P.fmtVel(9999), "9.9k");
+  assert.equal(P.fmtVel(123456), "12.3万");
+});
+
+test("取关小时额度:满 50 人暂停,最早一条过期后恢复 1 个名额", () => {
+  const log = Array.from({ length: 50 }, (_, i) => NOW - 50 * 60e3 + i * 60e3); // 50 分钟前起每分钟 1 个
+  const q = P.unfollowQuota(log, NOW);
+  assert.equal(q.used, 50);
+  assert.equal(q.left, 0);
+  assert.equal(q.resetInMs, 10 * 60e3);
+  assert.equal(P.unfollowQuota(log, NOW + 10 * 60e3).left, 1);
+  const mixed = P.unfollowQuota([NOW - 2 * HOUR, NOW - 1000, "x", NOW + 5000], NOW);
+  assert.equal(mixed.used, 1);
+  assert.equal(mixed.left, 49);
+  assert.equal(mixed.resetInMs, 0);
+  assert.equal(P.unfollowQuota(null, NOW).left, 50);
+});
+
+test("LruMap:超出上限淘汰最久未用的,get 会刷新顺序,peek 不会", () => {
+  const m = new P.LruMap(3);
+  m.set("a", 1).set("b", 2).set("c", 3);
+  m.get("a");          // a 变成最新
+  m.peek("b");         // 只读,不改变顺序
+  m.set("d", 4);       // 淘汰最久未用的 b
+  assert.deepEqual([...m.keys()], ["c", "a", "d"]);
+  m.set("c", 30);      // 覆盖已有键也算使用
+  m.set("e", 5);
+  assert.deepEqual([...m.keys()], ["d", "c", "e"]);
+  assert.equal(m.size, 3);
+  assert.equal(m.get("zz"), undefined);
+});
+
+test("作者统计:同一推文不重复累加,数字变大时替换,旧数据不回退", () => {
+  const s = P.createAuthorStats(10, 200);
+  const t = { id: "1", author: "alice", views: 1000, likes: 10, retweets: 5, replies: 3, quotes: 2 };
+  s.add(t);
+  s.add(t);
+  assert.deepEqual([s.get("alice").views, s.get("alice").interactions], [1000, 20]);
+  s.add({ ...t, views: 3000, likes: 40 });
+  assert.deepEqual([s.get("alice").views, s.get("alice").interactions], [3000, 50]);
+  s.add({ ...t, views: 500, likes: 0 });
+  assert.equal(s.get("alice").views, 3000);
+  assert.equal(s.get("nobody"), null);
+});
+
+test("作者统计:每作者只留最近 N 条,作者超限整体淘汰且不残留计数", () => {
+  const s = P.createAuthorStats(2, 3);
+  const tw = (id, author, views) => ({ id, author, views, likes: 1, retweets: 0, replies: 0, quotes: 0 });
+  for (let i = 1; i <= 5; i++) s.add(tw(String(i), "bob", i * 100));
+  assert.equal(s.get("bob").views, 300 + 400 + 500);
+  assert.equal(s.get("bob").interactions, 3);
+  s.add(tw("x", "carol", 100));
+  s.get("bob");                    // bob 刚被用到
+  s.add(tw("y", "dave", 100));     // 淘汰最久未用的 carol
+  assert.equal(s.get("carol"), null);
+  assert.equal(s.size, 2);
+  s.add(tw("x", "carol", 100));    // 被淘汰后再出现,从零开始计,不会翻倍
+  assert.equal(s.get("carol").views, 100);
 });

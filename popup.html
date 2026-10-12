@@ -13,107 +13,116 @@
       <h1>Snow X Assistant</h1>
       <span id="ver" class="ver"></span>
     </div>
-    <span class="local" title="只读取 X 页面已经加载的数据">本地运行</span>
+    <span class="local" data-i18n="local" data-i18n-title="local.title" title="只读取 X 页面已经加载的数据">本地运行</span>
   </header>
 
   <nav class="tabs" role="tablist">
-    <button type="button" role="tab" id="tab-tags" data-tab="tags" aria-controls="panel-tags">标签</button>
-    <button type="button" role="tab" id="tab-skin" data-tab="skin" aria-controls="panel-skin">主题</button>
-    <button type="button" role="tab" id="tab-mutual" data-tab="mutual" aria-controls="panel-mutual">互关清理<i id="mutualDot" class="tab-dot" hidden></i></button>
+    <button type="button" role="tab" id="tab-tags" data-tab="tags" aria-controls="panel-tags" data-i18n="tab.tags">标签</button>
+    <button type="button" role="tab" id="tab-skin" data-tab="skin" aria-controls="panel-skin" data-i18n="tab.skin">主题</button>
+    <button type="button" role="tab" id="tab-mutual" data-tab="mutual" aria-controls="panel-mutual" data-i18n="tab.mutual">互关清理</button>
+    <button type="button" role="tab" id="tab-general" data-tab="general" aria-controls="panel-general" data-i18n="tab.general">通用</button>
   </nav>
 
   <!-- ========== 主题 ========== -->
   <div class="panel" id="panel-skin" role="tabpanel" aria-labelledby="tab-skin" hidden>
     <div class="skin-bar">
-      <span>预览背景</span>
+      <span data-i18n="skin.bg">预览背景</span>
       <div class="seg mini" id="bgSeg">
-        <label><input type="radio" name="previewBg" value="light"><span>浅色</span></label>
-        <label><input type="radio" name="previewBg" value="dark"><span>深色</span></label>
+        <label><input type="radio" name="previewBg" value="light"><span data-i18n="bg.light">浅色</span></label>
+        <label><input type="radio" name="previewBg" value="dark"><span data-i18n="bg.dark">深色</span></label>
       </div>
     </div>
-    <div id="skins" class="skins" role="radiogroup" aria-label="标签主题"></div>
-    <p class="note">主题同时作用于推文流速、账号标签和悬停详情卡。预览背景只影响此弹窗。</p>
+    <div id="skins" class="skins" role="radiogroup" aria-label="标签主题" data-i18n-aria="skin.aria"></div>
+    <p class="note" data-i18n="skin.note">主题同时作用于推文流速、账号标签和悬停详情卡。预览背景只影响此弹窗。</p>
   </div>
 
   <!-- ========== 标签 ========== -->
   <div class="panel" id="panel-tags" role="tabpanel" aria-labelledby="tab-tags">
-    <div class="preview" aria-label="标签预览">
+    <div class="preview" aria-label="标签预览" data-i18n-aria="preview.aria">
       <div class="mock">
         <span class="mock-avatar"></span>
         <div class="mock-body">
           <div class="mock-head">
-            <b>Snow</b><span>@snow · 4小时</span>
+            <b>Snow</b><span>@snow · 4h</span>
             <span id="previewSlot" class="slot"></span>
           </div>
           <div class="mock-lines"><i></i><i></i></div>
         </div>
       </div>
-      <p id="previewEmpty" class="preview-empty" hidden>流速和账号标签都已关闭</p>
+      <p id="previewEmpty" class="preview-empty" data-i18n="preview.empty" hidden>流速、AI 检测和账号标签都已关闭</p>
       <button type="button" class="skin-link" id="skinLink"></button>
     </div>
 
     <section class="card">
       <label class="row head">
-        <span class="label"><b>推文流速</b><small>浏览量 ÷ 发布小时数,独立于账号标签</small></span>
+        <span class="label"><b data-i18n="vel.title">推文流速</b><small data-i18n="vel.desc">浏览量 ÷ 发布小时数,独立于账号标签</small></span>
         <input type="checkbox" class="switch" data-key="showVelocity">
       </label>
       <div class="group" data-depends="showVelocity">
         <div class="row">
-          <span class="label">档位阈值<small>浏览/小时</small></span>
+          <span class="label"><span data-i18n="thr.label">档位阈值</span><small data-i18n="thr.unit">浏览/小时</small></span>
           <span class="thresholds" id="thresholds">
-            <label><i class="sxa-lamp" data-lv="1" title="升温"></i><input type="number" min="1" step="100" data-num="velocityTrending" aria-label="升温阈值"></label>
-            <label><i class="sxa-lamp" data-lv="2" title="热门"></i><input type="number" min="2" step="500" data-num="velocityHot" aria-label="热门阈值"></label>
-            <label><i class="sxa-lamp" data-lv="3" title="爆款"></i><input type="number" min="3" step="1000" data-num="velocityViral" aria-label="爆款阈值"></label>
+            <label><i class="sxa-lamp" data-lv="1" data-i18n-title="lv.1" title="升温"></i><input type="number" min="1" step="100" data-num="velocityTrending" data-i18n-aria="thr.a1" aria-label="升温阈值"></label>
+            <label><i class="sxa-lamp" data-lv="2" data-i18n-title="lv.2" title="热门"></i><input type="number" min="2" step="500" data-num="velocityHot" data-i18n-aria="thr.a2" aria-label="热门阈值"></label>
+            <label><i class="sxa-lamp" data-lv="3" data-i18n-title="lv.3" title="爆款"></i><input type="number" min="3" step="1000" data-num="velocityViral" data-i18n-aria="thr.a3" aria-label="爆款阈值"></label>
           </span>
         </div>
+        <p class="thr-hint" id="thrHint" role="alert" hidden></p>
       </div>
     </section>
 
     <section class="card">
       <label class="row head">
-        <span class="label"><b>账号标签</b><small>粉丝数、粉丝/关注比、质量标签</small></span>
+        <span class="label"><b data-i18n="ai.title">AI 文本检测</b><small data-i18n="ai.desc">按中文、英文两套 AI 写作套路在本地打分,在标签行显示 AI 概率</small></span>
+        <input type="checkbox" class="switch" data-key="showAiText">
+      </label>
+    </section>
+
+    <section class="card">
+      <label class="row head">
+        <span class="label"><b data-i18n="acct.title">账号标签</b><small data-i18n="acct.desc">粉丝数、关注/粉丝比、质量标签</small></span>
         <input type="checkbox" class="switch" data-key="tagsEnabled">
       </label>
       <div class="group" data-depends="tagsEnabled">
-        <label class="row"><span class="label">粉丝数</span><input type="checkbox" class="switch" data-key="showFollowers"></label>
-        <label class="row"><span class="label">粉丝/关注比</span><input type="checkbox" class="switch" data-key="showRatio"></label>
-        <label class="row"><span class="label">粉丝量级圆点</span><input type="checkbox" class="switch" data-key="tierColors"></label>
+        <label class="row"><span class="label" data-i18n="acct.followers">粉丝数</span><input type="checkbox" class="switch" data-key="showFollowers"></label>
+        <label class="row"><span class="label"><span data-i18n="acct.ratio">关注/粉丝比</span><small data-i18n="acct.ratio.desc">关注数 ÷ 粉丝数，非实际互关率</small></span><input type="checkbox" class="switch" data-key="showRatio"></label>
+        <label class="row"><span class="label" data-i18n="acct.tier">粉丝量级圆点</span><input type="checkbox" class="switch" data-key="tierColors"></label>
         <div class="row col">
-          <span class="label">质量标签</span>
+          <span class="label" data-i18n="acct.quality">质量标签</span>
           <div class="chips">
-            <label><input type="checkbox" data-tag="relation"><span>互关</span></label>
-            <label><input type="checkbox" data-tag="bigV"><span>大V</span></label>
-            <label><input type="checkbox" data-tag="engaged"><span>高互动</span></label>
-            <label><input type="checkbox" data-tag="farm"><span>疑似互粉号</span></label>
-            <label><input type="checkbox" data-tag="newAcct"><span>新号</span></label>
-            <label><input type="checkbox" data-tag="lowActive"><span>低活跃</span></label>
-            <label><input type="checkbox" data-tag="oldAcct"><span>老号</span></label>
+            <label><input type="checkbox" data-tag="relation"><span data-i18n="tag.mutual">互关</span></label>
+            <label><input type="checkbox" data-tag="bigV"><span data-i18n="tag.bigV">大V</span></label>
+            <label><input type="checkbox" data-tag="engaged"><span data-i18n="tag.engaged">高互动</span></label>
+            <label><input type="checkbox" data-tag="farm"><span data-i18n="tag.farm">疑似互粉号</span></label>
+            <label><input type="checkbox" data-tag="newAcct"><span data-i18n="tag.newAcct">新号</span></label>
+            <label><input type="checkbox" data-tag="lowActive"><span data-i18n="tag.lowActive">低活跃</span></label>
+            <label><input type="checkbox" data-tag="oldAcct"><span data-i18n="tag.oldAcct">老号</span></label>
           </div>
         </div>
         <div class="row col">
-          <span class="label">每条最多显示</span>
+          <span class="label" data-i18n="acct.max">每条最多显示</span>
           <div class="seg">
-            <label><input type="radio" name="maxTags" data-key="maxTags" value="0"><span>不显示</span></label>
+            <label><input type="radio" name="maxTags" data-key="maxTags" value="0"><span data-i18n="max.0">不显示</span></label>
             <label><input type="radio" name="maxTags" data-key="maxTags" value="1"><span>1</span></label>
             <label><input type="radio" name="maxTags" data-key="maxTags" value="2"><span>2</span></label>
             <label><input type="radio" name="maxTags" data-key="maxTags" value="3"><span>3</span></label>
-            <label><input type="radio" name="maxTags" data-key="maxTags" value="7"><span>全部</span></label>
+            <label><input type="radio" name="maxTags" data-key="maxTags" value="7"><span data-i18n="max.all">全部</span></label>
           </div>
         </div>
       </div>
     </section>
 
     <section class="card">
-      <label class="row"><span class="label">悬停详情卡</span><input type="checkbox" class="switch" data-key="hoverCard"></label>
+      <label class="row"><span class="label" data-i18n="hover">悬停详情卡</span><input type="checkbox" class="switch" data-key="hoverCard"></label>
       <div class="row col">
-        <span class="label">推文里的位置</span>
+        <span class="label" data-i18n="layout">推文里的位置</span>
         <div class="seg">
-          <label><input type="radio" name="layout" data-key="layout" value="auto"><span>自动</span></label>
-          <label><input type="radio" name="layout" data-key="layout" value="inline"><span>跟在名字后</span></label>
-          <label><input type="radio" name="layout" data-key="layout" value="below"><span>单独一行</span></label>
+          <label><input type="radio" name="layout" data-key="layout" value="auto"><span data-i18n="layout.auto">自动</span></label>
+          <label><input type="radio" name="layout" data-key="layout" value="inline"><span data-i18n="layout.inline">跟在名字后</span></label>
+          <label><input type="radio" name="layout" data-key="layout" value="below"><span data-i18n="layout.below">单独一行</span></label>
         </div>
       </div>
-      <label class="row"><span class="label">调试信息条</span><input type="checkbox" class="switch" data-key="debug"></label>
+      <label class="row"><span class="label" data-i18n="debug">调试信息条</span><input type="checkbox" class="switch" data-key="debug"></label>
     </section>
   </div>
 
@@ -121,35 +130,78 @@
   <div class="panel" id="panel-mutual" role="tabpanel" aria-labelledby="tab-mutual" hidden>
     <section class="card">
       <label class="row head">
-        <span class="label"><b>互关清理</b><small>在你的“正在关注”页批量取关未回关的人</small></span>
+        <span class="label"><b data-i18n="m.title">互关清理</b><small data-i18n="m.desc">在你的“正在关注”页批量取关未回关的人</small></span>
         <input type="checkbox" class="switch" data-key="mutualEnabled">
       </label>
       <div class="group" data-depends="mutualEnabled">
         <div class="row col">
-          <span class="label">每次取关间隔<small>会再叠加随机抖动</small></span>
+          <span class="label"><span data-i18n="m.delay">每次取关间隔</span><small data-i18n="m.delay.desc">会再叠加随机抖动</small></span>
           <div class="seg">
-            <label><input type="radio" name="delay" data-num-radio="mutualDelayMs" value="1000"><span>1 秒</span></label>
-            <label><input type="radio" name="delay" data-num-radio="mutualDelayMs" value="1500"><span>1.5 秒</span></label>
-            <label><input type="radio" name="delay" data-num-radio="mutualDelayMs" value="3000"><span>3 秒</span></label>
-            <label><input type="radio" name="delay" data-num-radio="mutualDelayMs" value="5000"><span>5 秒</span></label>
+            <label><input type="radio" name="delay" data-num-radio="mutualDelayMs" value="1000"><span data-i18n="sec" data-i18n-n="1">1 秒</span></label>
+            <label><input type="radio" name="delay" data-num-radio="mutualDelayMs" value="1500"><span data-i18n="sec" data-i18n-n="1.5">1.5 秒</span></label>
+            <label><input type="radio" name="delay" data-num-radio="mutualDelayMs" value="3000"><span data-i18n="sec" data-i18n-n="3">3 秒</span></label>
+            <label><input type="radio" name="delay" data-num-radio="mutualDelayMs" value="5000"><span data-i18n="sec" data-i18n-n="5">5 秒</span></label>
           </div>
         </div>
       </div>
     </section>
 
     <section class="card steps">
-      <p class="steps-title">使用方法</p>
+      <p class="steps-title" data-i18n="m.steps">使用方法</p>
       <ol>
-        <li>打开 <code>x.com/你的用户名/following</code>,工具栏出现在“正在关注”标签栏下方。</li>
-        <li>默认只列出没回关你的人,勾选或“全选”后点“取消关注所选”。</li>
-        <li>确认后按间隔逐个取关,可随时停止。单次最多 100 人。</li>
+        <li><span data-i18n="m.step1a">打开 </span><code data-i18n="m.step1code">x.com/你的用户名/following</code><span data-i18n="m.step1b">,工具栏出现在“正在关注”标签栏下方。</span></li>
+        <li data-i18n="m.step2">默认只列出没回关你的人,勾选或“全选”后点“取消关注所选”。</li>
+        <li data-i18n="m.step3">确认后按间隔逐个取关,可随时停止。每小时最多 50 人,到量自动暂停。</li>
       </ol>
-      <p class="note">取关通过点击 X 页面自带按钮完成,不调用 X 接口。间隔越长越不容易被限流。</p>
+      <p class="note" data-i18n="m.note">取关通过点击 X 页面自带按钮完成,不调用 X 接口。间隔越长越不容易被限流。</p>
     </section>
   </div>
 
-  <footer id="foot">Snow X Assistant</footer>
+  <!-- ========== 通用 ========== -->
+  <div class="panel" id="panel-general" role="tabpanel" aria-labelledby="tab-general" hidden>
+    <section class="card">
+      <div class="row col">
+        <span class="label"><b data-i18n="g.theme">外观</b><small data-i18n="g.theme.desc"></small></span>
+        <div class="seg three">
+          <label><input type="radio" name="theme" data-key="theme" value="auto"><span data-i18n="theme.auto">自动</span></label>
+          <label><input type="radio" name="theme" data-key="theme" value="light"><span data-i18n="theme.light">浅色</span></label>
+          <label><input type="radio" name="theme" data-key="theme" value="dark"><span data-i18n="theme.dark">深色</span></label>
+        </div>
+      </div>
+      <div class="row col">
+        <span class="label"><b data-i18n="g.lang">语言</b><small data-i18n="g.lang.desc"></small></span>
+        <div class="seg three">
+          <label><input type="radio" name="lang" data-key="lang" value="auto"><span data-i18n="lang.auto">自动</span></label>
+          <label><input type="radio" name="lang" data-key="lang" value="zh"><span>中文</span></label>
+          <label><input type="radio" name="lang" data-key="lang" value="en"><span>English</span></label>
+        </div>
+      </div>
+    </section>
+
+    <section class="card about">
+      <p class="steps-title" data-i18n="g.about">作者与项目</p>
+      <div class="about-row">
+        <span class="about-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg></span>
+        <span class="about-text"><small data-i18n="g.x">作者的 X 账号</small><b>@xueyu1125</b></span>
+        <a class="pill-link" href="https://x.com/xueyu1125" target="_blank" rel="noopener noreferrer" data-i18n="g.follow">关注</a>
+      </div>
+      <div class="about-row">
+        <span class="about-ico" aria-hidden="true"><svg viewBox="0 0 16 16"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg></span>
+        <span class="about-text"><small data-i18n="g.gh">GitHub 仓库</small><b>Andrew-liu/snow-x-assistant</b></span>
+        <a class="pill-link star" href="https://github.com/Andrew-liu/snow-x-assistant" target="_blank" rel="noopener noreferrer">⭐ <span data-i18n="g.star">点 Star</span></a>
+      </div>
+      <p class="ask" data-i18n="g.ask"></p>
+    </section>
+  </div>
+
+  <footer>
+    <a class="author-follow" href="https://x.com/xueyu1125" target="_blank" rel="noopener noreferrer"><b data-i18n="foot.follow">关注作者</b> <span>@xueyu1125</span></a>
+    <span id="foot">Snow X Assistant</span>
+  </footer>
+  <script src="lib/i18n.js"></script>
   <script src="lib/parse.js"></script>
+  <script src="lib/common.js"></script>
+  <script src="lib/aitext.js"></script>
   <script src="lib/badge.js"></script>
   <script src="popup.js"></script>
 </body>

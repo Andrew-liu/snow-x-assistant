@@ -4,8 +4,11 @@
 (() => {
   "use strict";
   const P = window.SnowXParse;
-  const SETTINGS_KEY = "sxa_settings";
-  const MAX_PER_RUN = 100;
+  const C = window.SnowXCommon;
+  const I = window.SnowXI18n;
+  const T = (k, v) => I.t(k, v);
+  const LOG_KEY = "sxa_unfollow_log";       // 最近一小时成功取关的时间戳,跨刷新、跨标签页共享
+  const LIMIT = P.HOURLY_UNFOLLOW_LIMIT;    // 每小时最多取关人数,到量自动暂停
   const COL = '[data-testid="primaryColumn"]';
   const CELL_SEL = '[data-testid="UserCell"]';
   const FOLLOWS_YOU = '[data-testid="userFollowIndicator"]';
@@ -35,14 +38,23 @@
   let result = null;              // { ok, fail, missing, stopped }
   let ui = null;
   let timer = null;
+  let unfollowLog = [];
 
-  const storage = (typeof chrome !== "undefined" && chrome.storage && chrome.storage.local) || null;
-  if (storage) {
-    storage.get(SETTINGS_KEY, (r) => { settings = P.mergeSettings(r && r[SETTINGS_KEY]); schedule(); });
+  C.loadSettings((s) => { settings = s; C.applyLang(s); schedule(); });
+  C.onSettingsChange((s) => { settings = s; C.applyLang(s); schedule(); });
+  if (C.storage) {
+    C.storage.get(LOG_KEY, (r) => { unfollowLog = P.unfollowQuota(r && r[LOG_KEY], Date.now()).recent; schedule(); });
     chrome.storage.onChanged.addListener((c, area) => {
-      if (area === "local" && c[SETTINGS_KEY]) { settings = P.mergeSettings(c[SETTINGS_KEY].newValue); schedule(); }
+      if (area === "local" && c[LOG_KEY]) { unfollowLog = P.unfollowQuota(c[LOG_KEY].newValue, Date.now()).recent; if (mounted) updateBar(); }
     });
   }
+
+  const quota = () => P.unfollowQuota(unfollowLog, Date.now(), LIMIT);
+  function recordUnfollow() {
+    unfollowLog = quota().recent.concat(Date.now());
+    if (C.storage) C.storage.set({ [LOG_KEY]: unfollowLog });
+  }
+  const minutesLeft = (ms) => Math.max(1, Math.ceil(ms / 60e3));
 
   const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
@@ -64,10 +76,7 @@
     return !!me && me === page; // 识别不到自己时宁可不启用
   }
 
-  function isDark() {
-    const m = document.body && getComputedStyle(document.body).backgroundColor.match(/\d+/g);
-    return !!m && (+m[0] * 299 + +m[1] * 587 + +m[2] * 114) / 1000 < 128;
-  }
+  const isDark = () => C.themeIsDark(settings) === true;
 
   // ---------- 用户行 ----------
   function cellHandle(cell) {
@@ -97,11 +106,7 @@
     return null;
   }
 
-  function stopAll(el) {
-    for (const ev of ["click", "mousedown", "mouseup", "pointerdown", "pointerup", "touchstart", "touchend", "keydown", "keyup"]) {
-      el.addEventListener(ev, (e) => { e.stopPropagation(); });
-    }
-  }
+  const stopAll = (el) => C.stopEvents(el, ["click", "mousedown", "mouseup", "pointerdown", "pointerup", "touchstart", "touchend", "keydown", "keyup"]);
 
   // 页面级样式:给 UserCell 父容器预留勾选列、勾选框配色、筛选隐藏
   function injectPageStyle() {
@@ -159,7 +164,7 @@ html[data-sxa-mc-filter="oneway"] ${COL} :has(> [${HIT_ATTR}] + ${CELL_SEL} ${FO
     hit.querySelector("i").textContent = on ? "✓" : "";
     hit.firstElementChild.checked = on;
     hit.setAttribute("aria-checked", String(on));
-    hit.setAttribute("aria-label", "选择 @" + handle);
+    hit.setAttribute("aria-label", T("mc.select", { h: handle }));
     hit.setAttribute("aria-disabled", String(running || done.has(handle)));
   }
 
@@ -222,7 +227,11 @@ html[data-sxa-mc-filter="oneway"] ${COL} :has(> [${HIT_ATTR}] + ${CELL_SEL} ${FO
   }
 
   // ---------- 工具栏 ----------
-  const TEMPLATE = `
+  // 文案来自内置字典,仍统一转义;{b} 换成计数用的 <b> 占位
+  const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  const tx = (k, v) => esc(T(k, Object.assign({ limit: LIMIT }, v)));
+  const stat = (k, b) => tx(k).replace("{b}", b);
+  const template = () => `
 <style>
 :host{all:initial;display:block;font-family:TwitterChirp,-apple-system,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;-webkit-font-smoothing:antialiased;
   --surface:rgba(255,255,255,.82);--border:rgba(0,0,0,.08);--pri:rgba(0,0,0,.88);--sec:rgba(0,0,0,.55);--dim:rgba(0,0,0,.35);
@@ -282,66 +291,69 @@ html[data-sxa-mc-filter="oneway"] ${COL} :has(> [${HIT_ATTR}] + ${CELL_SEL} ${FO
 <div class="overlay" data-r="overlay" role="dialog" aria-modal="true" aria-labelledby="sxa-p-title">
   <div class="panel">
     <div class="icon">⚠️</div>
-    <div class="p-title" id="sxa-p-title">确认取消关注</div>
+    <div class="p-title" id="sxa-p-title">${tx("mc.confirmTitle")}</div>
     <div class="p-desc" data-r="desc"></div>
     <div class="p-note" data-r="note"></div>
     <div class="p-actions">
-      <button class="btn" data-a="cancel">取消</button>
-      <button class="btn confirm" data-a="confirm">确认取消关注</button>
+      <button class="btn" data-a="cancel">${tx("mc.cancel")}</button>
+      <button class="btn confirm" data-a="confirm">${tx("mc.confirm")}</button>
     </div>
   </div>
 </div>
-<div class="bar" role="region" aria-label="互关清理">
+<div class="bar" role="region" aria-label="${tx("mc.title")}">
   <div class="head">
-    <div class="title">互关清理<span class="badge">SNOW X</span></div>
+    <div class="title">${tx("mc.title")}<span class="badge">SNOW X</span></div>
     <div class="stats">
-      <span>列表 <b data-r="loaded">0</b> 人</span>
-      <span>已选 <b class="accent" data-r="sel">0</b> 人</span>
-      <span>未回关 <b class="danger" data-r="oneway">0</b> 人</span>
-      <span data-r="doneWrap" hidden>已取关 <b class="ok" data-r="doneN">0</b> 人</span>
+      <span>${stat("mc.loaded", '<b data-r="loaded">0</b>')}</span>
+      <span>${stat("mc.sel", '<b class="accent" data-r="sel">0</b>')}</span>
+      <span>${stat("mc.oneway", '<b class="danger" data-r="oneway">0</b>')}</span>
+      <span>${stat("mc.quota", '<b data-r="quota">0</b>')}</span>
+      <span data-r="doneWrap" hidden>${stat("mc.done", '<b class="ok" data-r="doneN">0</b>')}</span>
     </div>
   </div>
   <div class="actions">
     <div class="seg">
-      <button data-a="oneway">仅未回关</button>
-      <button data-a="all">全部</button>
+      <button data-a="oneway">${tx("mc.onlyOneway")}</button>
+      <button data-a="all">${tx("mc.all")}</button>
     </div>
     <div class="spacer"></div>
-    <button class="btn" data-a="selAll">全选未回关</button>
-    <button class="btn" data-a="clear">清除选择</button>
-    <button class="btn btn-danger" data-a="go">取消关注所选</button>
+    <button class="btn" data-a="selAll">${tx("mc.selAll")}</button>
+    <button class="btn" data-a="clear">${tx("mc.clear")}</button>
+    <button class="btn btn-danger" data-a="go">${tx("mc.go")}</button>
   </div>
   <div class="tip">
     <span class="status" data-r="status" aria-live="polite"></span>
     <div class="spacer"></div>
-    <span class="warn">⚠️ 建议分批取关,每小时不超过 50 人,降低账号限制风险</span>
+    <span class="warn">${tx("mc.warn")}</span>
   </div>
   <div class="prog" data-r="prog">
-    <div class="prog-head"><span data-r="progText">正在取消关注…</span><span><span data-r="progN">0 / 0</span> <button class="btn" data-a="stop">停止</button></span></div>
+    <div class="prog-head"><span data-r="progText">${tx("mc.progress")}</span><span><span data-r="progN">0 / 0</span> <button class="btn" data-a="stop">${tx("mc.stop")}</button></span></div>
     <div class="track"><div class="fill" data-r="fill"></div></div>
     <div class="log" data-r="log"></div>
   </div>
   <div class="done" data-r="done">
     <span>✅</span><span class="done-text" data-r="doneText"></span>
-    <button class="btn" data-a="dismiss">知道了</button>
+    <button class="btn" data-a="dismiss">${tx("mc.dismiss")}</button>
   </div>
 </div>`;
 
+  let mountedLang = null;
   function mount() {
     mounted = true;
+    mountedLang = I.lang();
     injectPageStyle();
     document.documentElement.setAttribute("data-sxa-mc-filter", mode);
     const host = document.createElement("div");
     host.setAttribute(HOST_ATTR, "");
     host.style.cssText = "position:sticky;z-index:3;display:block";
     const shadow = host.attachShadow({ mode: "open" });
-    shadow.innerHTML = TEMPLATE; // 静态模板,不含任何外部数据
+    shadow.innerHTML = template(); // 内置模板和字典文案(已转义),不含任何页面或网络数据
     stopAll(host);
     const r = (k) => shadow.querySelector(`[data-r="${k}"]`);
     const a = (k) => shadow.querySelector(`[data-a="${k}"]`);
     ui = {
       host, shadow,
-      loaded: r("loaded"), sel: r("sel"), oneway: r("oneway"), doneWrap: r("doneWrap"), doneN: r("doneN"),
+      loaded: r("loaded"), sel: r("sel"), oneway: r("oneway"), doneWrap: r("doneWrap"), doneN: r("doneN"), quota: r("quota"),
       status: r("status"), prog: r("prog"), progText: r("progText"), progN: r("progN"), fill: r("fill"), log: r("log"),
       done: r("done"), doneText: r("doneText"), overlay: r("overlay"), desc: r("desc"), note: r("note"),
       bOneway: a("oneway"), bAll: a("all"), selAll: a("selAll"), clear: a("clear"), go: a("go"), stop: a("stop"),
@@ -358,7 +370,8 @@ html[data-sxa-mc-filter="oneway"] ${COL} :has(> [${HIT_ATTR}] + ${CELL_SEL} ${FO
     ui.overlay.addEventListener("click", (e) => { if (e.target === ui.overlay) closeDialog(false); });
     shadow.addEventListener("keydown", (e) => { if (e.key === "Escape" && ui.overlay.classList.contains("show")) closeDialog(false); });
     insertHost(host);
-    setStatus("向下滚动加载更多关注,只处理已加载的账号");
+    ui.clock = setInterval(() => { if (!running) updateBar(); }, 30e3);
+    setStatus(T("mc.hint"));
   }
 
   function placeHost() {
@@ -374,7 +387,7 @@ html[data-sxa-mc-filter="oneway"] ${COL} :has(> [${HIT_ATTR}] + ${CELL_SEL} ${FO
   function unmount() {
     mounted = false;
     stopFlag = true;
-    if (ui) ui.host.remove();
+    if (ui) { clearInterval(ui.clock); ui.host.remove(); }
     ui = null;
     document.querySelectorAll(`[${HIT_ATTR}]`).forEach((n) => n.remove());
     document.querySelectorAll(`[${ROW_ATTR}]`).forEach((n) => n.removeAttribute(ROW_ATTR));
@@ -406,13 +419,14 @@ html[data-sxa-mc-filter="oneway"] ${COL} :has(> [${HIT_ATTR}] + ${CELL_SEL} ${FO
   let dialogResolve = null;
   function askConfirm() {
     const list = pending();
-    if (!list.length || running) return;
-    const n = Math.min(list.length, MAX_PER_RUN);
-    ui.desc.replaceChildren("将取消关注 ", Object.assign(document.createElement("b"), { textContent: String(n) }), " 个账号");
+    const q = quota();
+    if (!list.length || running || !q.left) return;
+    const n = Math.min(list.length, q.left);
+    ui.desc.replaceChildren(...I.parts("mc.desc", null, [Object.assign(document.createElement("b"), { textContent: String(n) })]));
     const sec = (settings.mutualDelayMs / 1000).toFixed(1);
-    ui.note.textContent = list.length > MAX_PER_RUN
-      ? `单次最多 ${MAX_PER_RUN} 个,剩余的请下一轮处理 · 每个间隔约 ${sec} 秒 · 此操作不可撤销`
-      : `每个间隔约 ${sec} 秒,可随时停止 · 此操作不可撤销`;
+    ui.note.textContent = list.length > q.left
+      ? T("mc.noteOver", { left: q.left, sec })
+      : T("mc.note", { sec });
     ui.overlay.classList.add("show");
     ui.shadow.querySelector('[data-a="cancel"]').focus();
     dialogResolve = (ok) => { if (ok) runBatch(); };
@@ -439,9 +453,14 @@ html[data-sxa-mc-filter="oneway"] ${COL} :has(> [${HIT_ATTR}] + ${CELL_SEL} ${FO
     ui.bOneway.setAttribute("aria-pressed", String(mode === "oneway"));
     ui.bAll.setAttribute("aria-pressed", String(mode === "all"));
     for (const b of [ui.bOneway, ui.bAll, ui.selAll]) b.disabled = running;
+    const q = quota();
+    ui.quota.textContent = String(q.used);
+    ui.quota.className = q.left ? "" : "danger";
     ui.clear.disabled = running || sel === 0;
-    ui.go.disabled = running || sel === 0;
-    ui.go.textContent = sel ? `取消关注所选 (${Math.min(sel, MAX_PER_RUN)})` : "取消关注所选";
+    ui.go.disabled = running || sel === 0 || !q.left;
+    ui.go.textContent = !q.left && !running
+      ? T("mc.full", { limit: LIMIT, m: minutesLeft(q.resetInMs) })
+      : sel ? T("mc.goN", { n: Math.min(sel, q.left) }) : T("mc.go");
 
     ui.prog.classList.toggle("show", phase === "progress");
     if (phase === "progress" && progress) {
@@ -456,10 +475,11 @@ html[data-sxa-mc-filter="oneway"] ${COL} :has(> [${HIT_ATTR}] + ${CELL_SEL} ${FO
     ui.done.classList.toggle("show", phase === "complete" && !!result);
     if (phase === "complete" && result) {
       const b = (n) => Object.assign(document.createElement("b"), { textContent: String(n) });
-      const parts = ["完成!成功取消关注 ", b(result.ok), " 人"];
-      if (result.fail) parts.push(",失败 ", b(result.fail), " 人");
-      if (result.missing) parts.push(`,${result.missing} 人已滚出列表,滚回去可重试`);
-      if (result.stopped) parts.push(",已手动停止");
+      const parts = I.parts("mc.resOk", null, [b(result.ok)]);
+      if (result.fail) parts.push(...I.parts("mc.resFail", null, [b(result.fail)]));
+      if (result.missing) parts.push(T("mc.resMissing", { n: result.missing }));
+      if (result.stopped) parts.push(T("mc.resStopped"));
+      if (result.paused) parts.push(T("mc.resPaused", { limit: LIMIT, m: minutesLeft(quota().resetInMs) }));
       ui.doneText.replaceChildren(...parts);
     }
   }
@@ -496,7 +516,7 @@ html[data-sxa-mc-filter="oneway"] ${COL} :has(> [${HIT_ATTR}] + ${CELL_SEL} ${FO
 
   async function runBatch() {
     if (running) return;
-    const list = pending().slice(0, MAX_PER_RUN);
+    const list = pending().slice(0, quota().left);
     if (!list.length) return;
     running = true;
     stopFlag = false;
@@ -505,17 +525,20 @@ html[data-sxa-mc-filter="oneway"] ${COL} :has(> [${HIT_ATTR}] + ${CELL_SEL} ${FO
     progress = { done: 0, total: list.length, log: [] };
     result = null;
     refresh();
-    let ok = 0, fail = 0, missing = 0;
+    let ok = 0, fail = 0, missing = 0, paused = false;
     for (let i = 0; i < list.length; i++) {
       if (stopFlag || !mounted) break;
+      // 每次都重新检查:其它标签页也可能在取关,共享同一份记录
+      if (!quota().left) { paused = true; break; }
       const h = list[i];
-      ui.progText.textContent = `正在取消关注 @${h}`;
+      ui.progText.textContent = T("mc.progressH", { h });
       const cell = findCell(h);
       if (!cell) { missing++; progress.done = i + 1; refresh(); continue; }
       cell.scrollIntoView({ block: "center" });
       await sleep(300);
       const r = await unfollowCell(cell);
       const good = r === "ok" || r === "not-following";
+      if (r === "ok") recordUnfollow(); // 本来就没关注的不占额度
       if (good) { ok++; done.add(h); selected.delete(h); } else fail++;
       progress.done = i + 1;
       progress.log.push({ h, ok: good });
@@ -524,11 +547,12 @@ html[data-sxa-mc-filter="oneway"] ${COL} :has(> [${HIT_ATTR}] + ${CELL_SEL} ${FO
     }
     running = false;
     if (!mounted) return;
-    result = { ok, fail, missing, stopped: stopFlag };
+    if (!quota().left && pending().length) paused = true;
+    result = { ok, fail, missing, stopped: stopFlag, paused };
     phase = "complete";
     progress = null;
     const left = pending().length;
-    setStatus(left ? `还有 ${left} 人待处理` : "向下滚动加载更多关注,只处理已加载的账号");
+    setStatus(left ? T("mc.left", { n: left }) : T("mc.hint"));
     refresh();
   }
 
@@ -536,6 +560,8 @@ html[data-sxa-mc-filter="oneway"] ${COL} :has(> [${HIT_ATTR}] + ${CELL_SEL} ${FO
   function tick() {
     const should = settings.mutualEnabled && onOwnFollowingPage();
     if (!should) { if (mounted) unmount(); return; }
+    // 语言变了就重建工具栏;正在取关时不打断,等跑完再换
+    if (mounted && !running && mountedLang !== I.lang()) unmount();
     if (!mounted) mount();
     refresh();
   }

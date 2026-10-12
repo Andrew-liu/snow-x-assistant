@@ -10,6 +10,7 @@
  *   aurora  极光     渐变填充 + 呼吸光晕
  * 浅色 / 深色由 html[data-sxa-theme] 切换。
  * 流速四档:<1k 普通(灰、无图标);1k / 5k / 1w 起三档前置 🚀,越往上越亮。
+ * AI 检测两档:疑似(浅紫)/ 很像(实心紫),各主题各自适配。
  */
 
 :root {
@@ -36,6 +37,10 @@
   --sxa-t-hi: #006b47;   --sxa-t-hi-bg: #dcf7ec;   --sxa-t-hi-bd: #7fdcb6;
   --sxa-t-warn: #9a4400; --sxa-t-warn-bg: #fff1db; --sxa-t-warn-bd: #f5bd6e;
   --sxa-t-n: #3e4a55;    --sxa-t-n-bg: #eef1f3;    --sxa-t-n-bd: #c3ccd4;
+
+  /* AI 文本检测:紫色系,和流速的绿/橙/红、质量标签区分开 */
+  --sxa-ai: #7c3aed; --sxa-ai-fg: #ffffff; --sxa-ai-ink: #5b21b6;
+  --sxa-ai-bg: #f1eaff; --sxa-ai-bd: #b99bff; --sxa-ai-glow: rgba(124, 58, 237, 0.45);
 }
 html[data-sxa-theme="dark"] {
   --sxa-ink: #e7e9ea;
@@ -58,6 +63,9 @@ html[data-sxa-theme="dark"] {
   --sxa-t-hi: #4ff0b0;   --sxa-t-hi-bg: rgba(0, 186, 124, 0.18);   --sxa-t-hi-bd: rgba(0, 186, 124, 0.6);
   --sxa-t-warn: #ffbe55; --sxa-t-warn-bg: rgba(245, 158, 11, 0.18); --sxa-t-warn-bd: rgba(245, 158, 11, 0.6);
   --sxa-t-n: #d0d7dd;    --sxa-t-n-bg: rgba(255, 255, 255, 0.08);  --sxa-t-n-bd: rgba(255, 255, 255, 0.26);
+
+  --sxa-ai: #b18cff; --sxa-ai-fg: #1a0b3d; --sxa-ai-ink: #cdb6ff;
+  --sxa-ai-bg: rgba(139, 92, 246, 0.2); --sxa-ai-bd: rgba(177, 140, 255, 0.65); --sxa-ai-glow: rgba(177, 140, 255, 0.6);
 }
 
 /* ======================================================================
@@ -155,14 +163,21 @@ html[data-sxa-theme] [data-sxa-skin="aurora"] {
   vertical-align: middle;
   white-space: nowrap;
   cursor: default;
-  font: 600 12px/1 var(--sxa-sans);
+  /* 固定标签字体,避免 X 加载 TwitterChirp 前后的字形基线变化。 */
+  font: 600 12px/1 Arial, "PingFang SC", "Microsoft YaHei", sans-serif;
 }
-.sxa-line { display: flex; padding-top: 3px; min-width: 0; }
+.sxa-line { display: flex; align-items: center; height: 24px; min-width: 0; overflow: visible; }
 .sxa-line .sxa-badge { margin-left: 0; }
+/* 防跳动:X 头部行高 20px,各主题胶囊 19-22px。跟在名字后时上下各收 2px,
+ * 无论哪个主题、有没有标签,头部行高都不变,推文高度也就不变。 */
+[data-testid="User-Name"] > .sxa-badge { margin-top: -2px; margin-bottom: -2px; }
 
 .sxa-p {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
+  font: inherit;
+  line-height: 1;
   gap: 3px;
   box-sizing: border-box;
   height: 20px;
@@ -171,12 +186,18 @@ html[data-sxa-theme] [data-sxa-skin="aurora"] {
   border-radius: 999px;
 }
 .sxa-n {
-  font-family: var(--sxa-mono);
+  font-family: inherit;
+  line-height: 1;
   font-weight: 800;
   font-variant-numeric: tabular-nums;
   letter-spacing: -0.02em;
 }
-.sxa-u { font-size: 10.5px; font-weight: 600; }
+/* 数字的可见字形略低于行框中心,只微调标签内数字,不影响详情卡。 */
+.sxa-badge .sxa-n { position: relative; top: -0.5px; }
+.sxa-badge[data-sxa-skin="shield"] .sxa-n,
+.sxa-badge[data-sxa-skin="sticker"] .sxa-n,
+.sxa-badge[data-sxa-skin="terminal"] .sxa-n { top: 0; }
+.sxa-u { display: inline-flex; align-items: center; align-self: center; font-family: inherit; font-size: 10.5px; font-weight: 600; line-height: 1; }
 
 .sxa-f, .sxa-r { border: 1.5px solid var(--sxa-f-bd); background: var(--sxa-f-bg); color: var(--sxa-f-ink); }
 .sxa-f .sxa-u, .sxa-r .sxa-u { color: var(--sxa-f-unit); }
@@ -223,6 +244,11 @@ html[data-sxa-theme] [data-sxa-skin="aurora"] {
 .sxa-tag.warn { color: var(--sxa-t-warn); background: var(--sxa-t-warn-bg); border-color: var(--sxa-t-warn-bd); }
 .sxa-tag.n { color: var(--sxa-t-n); background: var(--sxa-t-n-bg); border-color: var(--sxa-t-n-bd); }
 
+/* AI 检测:疑似 = 浅紫描边,很像 = 实心紫 + 光晕 */
+.sxa-ai { color: var(--sxa-ai-ink); background: var(--sxa-ai-bg); border: 1.5px solid var(--sxa-ai-bd); }
+.sxa-ai .sxa-u { color: inherit; opacity: 0.85; font-weight: 800; letter-spacing: 0.02em; }
+.sxa-ai[data-lv="2"] { color: var(--sxa-ai-fg); background: var(--sxa-ai); border-color: transparent; box-shadow: 0 1px 7px var(--sxa-ai-glow); }
+
 /* ======================================================================
  * 徽章 shield:左灰标签 + 右彩色数值,方角,Verdana
  * ====================================================================== */
@@ -241,7 +267,7 @@ html[data-sxa-theme] [data-sxa-skin="aurora"] {
 .sxa-badge[data-sxa-skin="shield"] .sxa-f { background: var(--sxa-tier, #007ec6); }
 .sxa-badge[data-sxa-skin="shield"] .sxa-f::before { content: "粉丝"; }
 .sxa-badge[data-sxa-skin="shield"] .sxa-r { background: #8a63d2; }
-.sxa-badge[data-sxa-skin="shield"] .sxa-r::before { content: "粉/关"; }
+.sxa-badge[data-sxa-skin="shield"] .sxa-r::before { content: "关/粉"; }
 .sxa-badge[data-sxa-skin="shield"] .sxa-v { background: var(--lv); }
 .sxa-badge[data-sxa-skin="shield"] .sxa-v::before { content: "流速"; }
 .sxa-badge[data-sxa-skin="shield"] .sxa-v[data-lv="2"] { box-shadow: 0 0 6px var(--lv-glow); }
@@ -252,6 +278,13 @@ html[data-sxa-theme] [data-sxa-skin="aurora"] {
 .sxa-badge[data-sxa-skin="shield"] .sxa-tag.hi { background: #3fc93a; }
 .sxa-badge[data-sxa-skin="shield"] .sxa-tag.warn { background: #dfb317; }
 .sxa-badge[data-sxa-skin="shield"] .sxa-tag.n { background: #9f9f9f; }
+.sxa-badge[data-sxa-skin="shield"] .sxa-ai { background: #a37be0; }
+.sxa-badge[data-sxa-skin="shield"] .sxa-ai::before { content: "AI腔"; }
+html[data-sxa-lang="en"] .sxa-badge[data-sxa-skin="shield"] .sxa-f::before { content: "followers"; }
+html[data-sxa-lang="en"] .sxa-badge[data-sxa-skin="shield"] .sxa-r::before { content: "F/F"; }
+html[data-sxa-lang="en"] .sxa-badge[data-sxa-skin="shield"] .sxa-v::before { content: "speed"; }
+html[data-sxa-lang="en"] .sxa-badge[data-sxa-skin="shield"] .sxa-ai::before { content: "AI-ish"; }
+.sxa-badge[data-sxa-skin="shield"] .sxa-ai[data-lv="2"] { background: #7c3aed; box-shadow: 0 0 7px var(--sxa-ai-glow); }
 
 /* ======================================================================
  * 贴纸 sticker:粗黑描边、硬投影、交替倾斜
@@ -276,6 +309,8 @@ html[data-sxa-theme="dark"] .sxa-badge[data-sxa-skin="sticker"] .sxa-p { box-sha
 .sxa-badge[data-sxa-skin="sticker"] .sxa-tag.hi { background: #a6f5c4; }
 .sxa-badge[data-sxa-skin="sticker"] .sxa-tag.warn { background: #ffd08a; }
 .sxa-badge[data-sxa-skin="sticker"] .sxa-tag.n { background: #e8e8e8; }
+.sxa-badge[data-sxa-skin="sticker"] .sxa-ai { background: #e4d4ff; }
+.sxa-badge[data-sxa-skin="sticker"] .sxa-ai[data-lv="2"] { background: #b388ff; box-shadow: 2px 2px 0 #0f1419, 0 0 9px var(--sxa-ai-glow); }
 
 /* ======================================================================
  * 终端 terminal:整条黑色命令行,等宽,竖线分隔
@@ -302,6 +337,10 @@ html[data-sxa-theme="dark"] .sxa-badge[data-sxa-skin="sticker"] .sxa-p { box-sha
 .sxa-badge[data-sxa-skin="terminal"] .sxa-tag.hi { color: #3fe07a; }
 .sxa-badge[data-sxa-skin="terminal"] .sxa-tag.warn { color: #ffc53d; }
 .sxa-badge[data-sxa-skin="terminal"] .sxa-tag.n { color: #8b949e; }
+.sxa-badge[data-sxa-skin="terminal"] .sxa-ai { color: #d2a8ff; }
+.sxa-badge[data-sxa-skin="terminal"] .sxa-ai .sxa-u { color: inherit; opacity: 0.7; }
+.sxa-badge[data-sxa-skin="terminal"] .sxa-ai[data-lv="2"] { color: #e6ccff; }
+.sxa-badge[data-sxa-skin="terminal"] .sxa-ai[data-lv="2"] .sxa-n { text-shadow: 0 0 7px rgba(210, 168, 255, 0.85); }
 
 /* ======================================================================
  * 热度条 heatbar:流速为 5 格进度条(绿→红),其余为带下划线的文字
@@ -334,6 +373,9 @@ html[data-sxa-theme="dark"] .sxa-badge[data-sxa-skin="sticker"] .sxa-p { box-sha
 .sxa-badge[data-sxa-skin="heatbar"] .sxa-tag.hi { color: var(--sxa-calm); }
 .sxa-badge[data-sxa-skin="heatbar"] .sxa-tag.warn { color: var(--sxa-rise); }
 .sxa-badge[data-sxa-skin="heatbar"] .sxa-tag.n { color: var(--sxa-mute); }
+.sxa-badge[data-sxa-skin="heatbar"] .sxa-ai { padding: 0 0 2px; border-bottom: 2px dashed currentColor; color: var(--sxa-ai-ink); }
+.sxa-badge[data-sxa-skin="heatbar"] .sxa-ai .sxa-u { color: inherit; }
+.sxa-badge[data-sxa-skin="heatbar"] .sxa-ai[data-lv="2"] { border-bottom-style: solid; border-bottom-width: 3px; color: var(--sxa-ai); }
 
 /* ======================================================================
  * 霓虹 neon:透明底 + 发光描边,方圆角
@@ -353,6 +395,12 @@ html[data-sxa-theme="dark"] .sxa-badge[data-sxa-skin="neon"] .sxa-v { text-shado
   box-shadow: 0 0 16px var(--lv-glow), 0 0 2px var(--lv), inset 0 0 8px color-mix(in srgb, var(--lv) 35%, transparent);
 }
 .sxa-badge[data-sxa-skin="neon"] .sxa-tag { background: transparent; box-shadow: 0 0 5px color-mix(in srgb, currentColor 40%, transparent); }
+.sxa-badge[data-sxa-skin="neon"] .sxa-ai { border: 1.5px solid var(--sxa-ai); color: var(--sxa-ai-ink); box-shadow: 0 0 6px var(--sxa-ai-glow); }
+.sxa-badge[data-sxa-skin="neon"] .sxa-ai[data-lv="2"] {
+  background: color-mix(in srgb, var(--sxa-ai) 16%, transparent);
+  box-shadow: 0 0 14px var(--sxa-ai-glow), inset 0 0 6px color-mix(in srgb, var(--sxa-ai) 30%, transparent);
+}
+html[data-sxa-theme="dark"] .sxa-badge[data-sxa-skin="neon"] .sxa-ai[data-lv="2"] { text-shadow: 0 0 6px var(--sxa-ai-glow); }
 
 /* ======================================================================
  * 原生文字 minimal:无框,· 分隔,只上色
@@ -371,6 +419,10 @@ html[data-sxa-theme="dark"] .sxa-badge[data-sxa-skin="neon"] .sxa-v { text-shado
 .sxa-badge[data-sxa-skin="minimal"] .sxa-v[data-lv="2"] .sxa-n { text-shadow: 0 0 5px var(--lv-glow); }
 .sxa-badge[data-sxa-skin="minimal"] .sxa-v[data-lv="3"] .sxa-n { text-shadow: 0 0 9px var(--lv-glow); }
 .sxa-badge[data-sxa-skin="minimal"] .sxa-tag { font-size: 12px; }
+.sxa-badge[data-sxa-skin="minimal"] .sxa-ai { color: var(--sxa-ai-ink); }
+.sxa-badge[data-sxa-skin="minimal"] .sxa-ai .sxa-u { color: inherit; }
+.sxa-badge[data-sxa-skin="minimal"] .sxa-ai[data-lv="2"] { color: var(--sxa-ai); }
+.sxa-badge[data-sxa-skin="minimal"] .sxa-ai[data-lv="2"] .sxa-n { text-shadow: 0 0 7px var(--sxa-ai-glow); }
 
 /* ======================================================================
  * 极光 aurora:渐变填充、毛玻璃底,爆款呼吸光晕
@@ -385,6 +437,16 @@ html[data-sxa-theme="dark"] .sxa-badge[data-sxa-skin="neon"] .sxa-v { text-shado
   background:
     linear-gradient(var(--sxa-card), var(--sxa-card)) padding-box,
     linear-gradient(135deg, #00e0ff, #7856ff, #ff0080) border-box;
+}
+.sxa-badge[data-sxa-skin="aurora"] .sxa-ai {
+  border: 1px solid transparent; color: var(--sxa-ai-ink);
+  background:
+    linear-gradient(var(--sxa-card), var(--sxa-card)) padding-box,
+    linear-gradient(135deg, #a78bfa, #ff0080) border-box;
+}
+.sxa-badge[data-sxa-skin="aurora"] .sxa-ai[data-lv="2"] {
+  color: #fff; border-color: transparent; text-shadow: 0 1px 1px rgba(0, 0, 0, 0.22);
+  background: linear-gradient(135deg, #8b5cf6, #ec4899); box-shadow: 0 2px 10px var(--sxa-ai-glow);
 }
 @keyframes sxa-breathe {
   0%, 100% { box-shadow: 0 0 0 2px rgba(255, 45, 122, 0.25), 0 2px 8px var(--sxa-v3-glow); }
@@ -483,6 +545,19 @@ html[data-sxa-theme="dark"] .sxa-badge[data-sxa-skin="neon"] .sxa-v { text-shado
 
 .sxa-foot { margin-top: 8px; font-size: 11px; color: var(--sxa-mute); }
 
+/* 悬停卡 · AI 检测明细 */
+.sxa-ai-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.sxa-ai-sec .sxa-read-n b { color: var(--sxa-ai-ink); }
+.sxa-ai-sec[data-ai="2"] .sxa-read-n b { color: var(--sxa-ai); }
+.sxa-ai-sec[data-ai="0"] .sxa-read-n b { color: var(--sxa-mute); }
+.sxa-pill.ai { color: var(--sxa-ai-ink); background: var(--sxa-ai-bg); font-weight: 800; }
+.sxa-ai-sec[data-ai="2"] .sxa-pill.ai { color: var(--sxa-ai-fg); background: var(--sxa-ai); box-shadow: 0 2px 8px var(--sxa-ai-glow); }
+.sxa-ai-sec[data-ai="0"] .sxa-pill.ai { color: var(--sxa-mute); background: var(--sxa-wash); font-weight: 600; }
+.sxa-ai-hits { display: flex; flex-direction: column; gap: 4px; margin-top: 8px; }
+.sxa-ai-hit { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
+.sxa-ai-hit span { flex: none; font-weight: 600; }
+.sxa-ai-hit q { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--sxa-mute); quotes: "“" "”"; }
+
 #sxa-hud {
   position: fixed; left: 8px; bottom: 8px; z-index: 2147483646;
   padding: 4px 8px; border-radius: 6px;
@@ -494,3 +569,7 @@ html[data-sxa-theme="dark"] .sxa-badge[data-sxa-skin="neon"] .sxa-v { text-shado
   #sxa-tip.in { animation: none; }
   .sxa-badge[data-sxa-skin="aurora"] .sxa-v[data-lv="3"] { animation: none; }
 }
+
+/* AI 概率常驻:低于 40% 或正文太短时淡化,不抢眼 */
+.sxa-badge[data-sxa-skin] .sxa-ai[data-lv="0"] { opacity: 0.55; filter: grayscale(0.6); box-shadow: none; }
+.sxa-badge[data-sxa-skin] .sxa-ai[data-short="1"] { opacity: 0.4; }

@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "Snow X Assistant",
-  "version": "0.5.1",
-  "description": "在 X 上用统一标签显示粉丝数、质量标签和单条推文流速,并提供可独立开关的互关清理。本地运行,不额外请求 X API。",
+  "version": "0.7.3",
+  "description": "在 X 上用统一标签显示粉丝数、质量标签、单条推文流速和 AI 文本检测,并提供可独立开关的互关清理。本地运行,不额外请求 X API。",
   "minimum_chrome_version": "111",
   "icons": {
     "16": "icons/icon16.png",
@@ -40,7 +40,10 @@
         "https://twitter.com/*"
       ],
       "js": [
+        "lib/i18n.js",
         "lib/parse.js",
+        "lib/common.js",
+        "lib/aitext.js",
         "lib/badge.js",
         "content.js",
         "following.js"
