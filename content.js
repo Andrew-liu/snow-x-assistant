@@ -36,6 +36,7 @@
     C.loadSettings((s) => {
       settings = s;
       syncLang();
+      syncLayout();
       applyDebug();
       flush();
     });
@@ -45,6 +46,7 @@
       settingsVer++;
       fullPass = true;
       syncLang();
+      syncLayout();
       applyDebug();
       scheduleRender();
     });
@@ -54,6 +56,16 @@
   function syncLang() {
     const l = C.applyLang(settings);
     if (document.documentElement.dataset.sxaLang !== l) document.documentElement.dataset.sxaLang = l;
+  }
+
+  // 「单独一行」靠 CSS 在推文头部预留空间,布局模式写到 html[data-sxa-layout];
+  // 一个标签功能都没开时不预留
+  function syncLayout() {
+    const on = settings.tagsEnabled || settings.showVelocity || settings.showAiText;
+    if (on) {
+      if (document.documentElement.dataset.sxaLayout !== settings.layout)
+        document.documentElement.dataset.sxaLayout = settings.layout;
+    } else delete document.documentElement.dataset.sxaLayout;
   }
 
   function flush() {
@@ -209,15 +221,7 @@
   }
 
   // ----- 推文头部 -----
-  const placed = new WeakMap(); // User-Name 元素 -> { badge, line, sig }
-
-  function headerRow(un) {
-    const row = un.parentElement && un.parentElement.parentElement && un.parentElement.parentElement.parentElement;
-    const host = row && row.parentElement;
-    if (!row || !host) return null;
-    const rs = getComputedStyle(row), hs = getComputedStyle(host);
-    return rs.display === "flex" && rs.flexDirection === "row" && hs.flexDirection === "column" ? row : null;
-  }
+  const placed = new WeakMap(); // User-Name 元素 -> { badge, sig }
 
   function crowded(un, badge) {
     for (const n of un.querySelectorAll("*")) {
@@ -227,12 +231,9 @@
     return false;
   }
 
-  function moveBelow(row, badge) {
-    const line = document.createElement("div");
-    line.className = "sxa-line";
-    line.append(badge);
-    row.after(line);
-    return line;
+  // 放不下时从末尾收起标签,至少留一个;只删标签内部元素,不改变推文高度
+  function trim(un, badge) {
+    while (badge.childElementCount > 1 && crowded(un, badge)) badge.lastElementChild.remove();
   }
 
   // 被替换的标签如果正挂着悬停卡,一起收起,免得卡片悬空
@@ -245,13 +246,14 @@
     const rec = placed.get(un);
     if (!rec) return;
     dropBadge(rec.badge);
-    if (rec.line) rec.line.remove();
     placed.delete(un);
   }
 
-  // 只做 DOM 写入;需要量尺寸的(自动换行 / 放到下一行)返回给 render 统一处理
+  // 只做 DOM 写入;自动模式下需要量尺寸收起标签的返回给 render 统一处理
   function decorateTweet(un) {
     const article = un.closest('article[data-testid="tweet"]');
+    const q = un.closest('div[role="link"]');
+    const inQuote = !!(q && article && article.contains(q));
     const handle = handleOf(un);
     const id = tweetIdFor(un, article);
     let tweet = id ? tweets.get(id) : null;
@@ -274,8 +276,11 @@
     const built = buildBadge(handle, tweet, false, ai, id);
     if (!built) return null;
     un.append(built.wrap);
-    placed.set(un, { badge: built.wrap, line: null, sig });
-    return settings.layout === "inline" ? null : { un, badge: built.wrap, layout: settings.layout, id };
+    placed.set(un, { badge: built.wrap, sig });
+    // 单独一行:CSS 已在头部预留一行,标签绝对定位进去;引用推文里的头部不预留,退回自动模式
+    if (settings.layout === "below" && !inQuote) { built.wrap.classList.add("sxa-below"); return null; }
+    if (settings.layout === "inline") return null;
+    return { un, badge: built.wrap };
   }
 
   // ----- 关注 / 粉丝列表里的用户行 -----
@@ -298,7 +303,6 @@
   }
 
   function cleanup() {
-    document.querySelectorAll(".sxa-line").forEach((l) => l.remove());
     document.querySelectorAll(".sxa-badge").forEach((b) => b.remove());
     hideTip();
   }
@@ -318,12 +322,11 @@
   const HEAD_SEL = '[data-testid="User-Name"]';
   const CELL_SEL = '[data-testid="UserCell"]';
   const TARGET_SEL = `${HEAD_SEL}, ${CELL_SEL}`;
-  const OWN_SEL = ".sxa-badge, .sxa-line, #sxa-tip, #sxa-hud, .sxa-mc-bar";
+  const OWN_SEL = ".sxa-badge, #sxa-tip, #sxa-hud, .sxa-mc-bar";
   const added = [];            // 待检查的新增节点
   const tracked = new Set();   // 已交给 IntersectionObserver 的元素
   const visible = new Set();   // 视口上下 800px 内的元素
   const dirty = new Set();     // 下次渲染需要处理的元素
-
   const io = new IntersectionObserver((entries) => {
     for (const en of entries) {
       if (en.isIntersecting) { visible.add(en.target); dirty.add(en.target); }
@@ -353,78 +356,10 @@
   }
 
   // ---------- 防跳动 ----------
-  // X 的时间线是虚拟列表:每条推文按缓存的高度绝对定位。插件让视口上方的推文变高 / 变矮时,
-  // 下面正在看的内容会被整体推开,看起来就是页面乱跳。这里做三件事:
-  // 1. 新挂载的推文在 MutationObserver 回调里同步加标签,赶在 X 测量高度之前,X 量到的就是最终高度;
-  // 2. 推文一旦被放到"单独一行",之后重建标签时沿用,不在一行 / 两行之间来回切换;
-  // 3. 其它时候(数据晚到、设置变化、每分钟刷新)改了视口上方元素的高度,就按视口顶部那条推文的位置把滚动补回去。
-  const belowIds = new Set();  // 已放到下一行的推文 id
-  let belowLayout = null;
-  let settleRO = null;
-  let settleJob = null;
-  const BOX_SEL = '[data-testid="cellInnerDiv"]';
-  const boxOf = (el) => el.closest(BOX_SEL) || el.closest('article[data-testid="tweet"]') || el;
-
-  // 视口顶部的参照物:露出 30px 以上、位置最靠上的推文或用户行。只露出一条边的不算,
-  // 否则它自己变高时会把下面真正在看的内容推开
-  function topAnchor() {
-    let best = null, bestTop = Infinity;
-    for (const n of document.querySelectorAll('article[data-testid="tweet"], ' + CELL_SEL)) {
-      const r = n.getBoundingClientRect();
-      if (!r.height || r.bottom <= 30 || r.top >= window.innerHeight) continue;
-      if (r.top < bestTop) { best = n; bestTop = r.top; }
-    }
-    return best ? { el: best, top: bestTop } : null;
-  }
-
-  // 写入前调用:记下视口上方将被修改的元素高度。没有这种元素时返回 null,省掉后续测量
-  function measureAbove(work) {
-    if (window.scrollY <= 0) return null;
-    const anchor = topAnchor();
-    if (!anchor) return null;
-    const boxes = new Map();
-    for (const el of work) {
-      if (!el.isConnected) continue;
-      const box = boxOf(el);
-      if (boxes.has(box) || box.contains(anchor.el)) continue;
-      const r = box.getBoundingClientRect();
-      if (r.bottom <= anchor.top + 1) boxes.set(box, r.height);
-    }
-    return boxes.size ? { anchor, boxes } : null;
-  }
-
-  // 写入后调用:算出上方元素一共变了多少高度,然后在接下来几帧里盯住参照物,把它被推开的距离滚回去。
-  // 只补偿方向一致、且不超过插件自己造成的变化量的偏移,X 自己已经补偿过时偏移为 0,不会重复补。
-  function settleAfter(m) {
-    if (!m) return;
-    let expected = 0;
-    for (const [box, h] of m.boxes) if (box.isConnected) expected += box.getBoundingClientRect().height - h;
-    if (Math.abs(expected) < 0.5) return;
-    const prev = settleJob;
-    const job = { el: m.anchor.el, top0: m.anchor.top, y0: window.scrollY, corr: 0, left: expected + (prev ? prev.left : 0), frames: 0 };
-    settleJob = job;
-    if (!settleRO) settleRO = new ResizeObserver(() => { if (settleJob) settleStep(settleJob, false); });
-    settleRO.disconnect();
-    for (const box of m.boxes.keys()) if (box.isConnected) settleRO.observe(box);
-    settleStep(job, true);
-  }
-
-  function settleStep(job, schedule) {
-    if (settleJob !== job) return;
-    if (!job.el.isConnected) { settleJob = null; return; }
-    const top = job.el.getBoundingClientRect().top;
-    const want = job.top0 - (window.scrollY - job.corr - job.y0);
-    const drift = top - want;
-    if (Math.abs(drift) >= 1 && Math.sign(drift) === Math.sign(job.left) && Math.abs(drift) <= Math.abs(job.left) + 2) {
-      window.scrollBy(0, drift);
-      job.corr += drift;
-      job.left -= drift;
-    }
-    if (Math.abs(job.left) < 1) { settleJob = null; if (settleRO) settleRO.disconnect(); return; }
-    if (!schedule) return;
-    if (++job.frames > 12) { settleJob = null; if (settleRO) settleRO.disconnect(); return; }
-    requestAnimationFrame(() => settleStep(job, true));
-  }
+  // X 在 React 提交时就给每条推文量好高度,早于 MutationObserver,所以插件不能改变推文高度:
+  // 「单独一行」由 CSS 给推文头部固定预留 24px,标签绝对定位进去,X 量到的就是最终高度;
+  // 「自动」和「跟在名字后」只把标签放在名字后(负外边距不占高度),太挤就从末尾收起标签;
+  // 不再做滚动补偿。
 
   function render() {
     if (timer) { clearTimeout(timer); timer = null; }
@@ -439,35 +374,19 @@
       updateHud();
       return;
     }
-    if (belowLayout !== settings.layout) { belowIds.clear(); belowLayout = settings.layout; }
     const work = fullPass ? new Set([...visible, ...dirty]) : new Set(dirty);
     fullPass = false;
     dirty.clear();
     if (!work.size) { updateHud(); return; }
 
-    // 先量一次上方高度,再统一写入,再统一测量,最后统一挪位置:每轮布局计算次数固定
-    const above = measureAbove(work);
+    // 先统一写入 DOM,再统一测量收起放不下的标签:每轮布局计算次数固定,且都不改变推文高度
     const checks = [];
     for (const el of work) {
       if (!el.isConnected) continue;
       if (el.matches(CELL_SEL)) decorateCell(el);
       else { const c = decorateTweet(el); if (c) checks.push(c); }
     }
-    const moves = [];
-    for (const c of checks) {
-      const sticky = c.id && belowIds.has(c.id);
-      if (c.layout === "auto" && !sticky && !crowded(c.un, c.badge)) continue;
-      const row = headerRow(c.un);
-      if (row) moves.push([c, row]);
-    }
-    for (const [c, row] of moves) {
-      const rec = placed.get(c.un);
-      const line = moveBelow(row, c.badge);
-      if (rec && rec.badge === c.badge) rec.line = line;
-      if (c.id) belowIds.add(c.id);
-    }
-    if (belowIds.size > TWEETS_MAX) belowIds.clear();
-    settleAfter(above);
+    for (const c of checks) trim(c.un, c.badge);
     updateHud();
   }
 
@@ -488,10 +407,9 @@
     }
     if (!any) return;
     if (!settings) { scheduleRender(); return; }
-    // 新挂载的推文 / 用户行立即处理:这个回调在浏览器排版、X 测量高度之前执行,标签不会造成二次跳动
-    const before = dirty.size;
+    // 新挂载的推文 / 用户行立即处理:这个回调在 X 测量高度之前执行,同步写入让 X 量到最终高度
     for (const n of added.splice(0)) discover(n);
-    if (dirty.size > before) render();
+    if (dirty.size) render();
   }).observe(document.documentElement, { childList: true, subtree: true });
 
   // 浏览数不变时流速也会随时间下降;每分钟检查一次视口附近的推文,显示值变了才重建

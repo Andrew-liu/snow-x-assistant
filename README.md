@@ -11,7 +11,7 @@
 
 <p>
   <img alt="Manifest V3" src="https://img.shields.io/badge/Manifest-V3-1d9bf0?style=flat-square">
-<img alt="Version" src="https://img.shields.io/badge/version-0.7.3-0f1419?style=flat-square">
+<img alt="Version" src="https://img.shields.io/badge/version-0.7.4-0f1419?style=flat-square">
   <img alt="Permissions" src="https://img.shields.io/badge/permissions-storage%20only-00ba7c?style=flat-square">
   <img alt="Network" src="https://img.shields.io/badge/extra%20requests-0-00ba7c?style=flat-square">
   <img alt="Build" src="https://img.shields.io/badge/build-none-8b98a5?style=flat-square">
@@ -76,7 +76,7 @@
 - 悬停任意标签,弹出账号与推文的详细数据卡:粉丝、关注、比值、注册时长,浏览、赞、转、评、藏和爆款分,以及 AI 检测命中的具体规则。
 - 自动适配 X 的浅色、暗蓝、纯黑三种背景,也可以在弹窗里固定为浅色或深色。
 - 支持中文和英文界面。
-- 标题行太挤时,标签自动换到下一行,不遮挡用户名。
+- 标题行太挤时自动收起末尾的标签,完整数据看悬停卡;也可以选「单独一行」固定显示在名字下方。
 
 ## 主题
 
@@ -268,7 +268,7 @@ snow-x-assistant
 <details>
 <summary><b>浏览时页面会不会乱跳?</b></summary>
 <br>
-X 的时间线是虚拟列表,每条推文按测量好的高度定位。早期版本在视口上方的推文插入或改换标签时,会把正在看的内容推开。0.7.0 起,新出现的推文在 X 测量高度之前就挂好标签;放到单独一行的标签之后不会再跳回名字后面;数据晚到或改设置导致上方推文高度变化时,会按视口顶部那条推文的位置把滚动补回去。
+X 的时间线是虚拟列表,每条推文按测量好的高度定位。X 在渲染时就量好高度,插件再改动高度会让往上翻时内容乱跳。0.7.4 起插件不再改变推文高度:「自动」和「跟在名字后」只在名字后显示,「单独一行」由样式固定预留一行,不做滚动补偿。
 </details>
 
 <details>

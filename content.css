@@ -166,11 +166,17 @@ html[data-sxa-theme] [data-sxa-skin="aurora"] {
   /* 固定标签字体,避免 X 加载 TwitterChirp 前后的字形基线变化。 */
   font: 600 12px/1 Arial, "PingFang SC", "Microsoft YaHei", sans-serif;
 }
-.sxa-line { display: flex; align-items: center; height: 24px; min-width: 0; overflow: visible; }
-.sxa-line .sxa-badge { margin-left: 0; }
+/* 单独一行:由 CSS 给推文头部固定预留 24px,X 在提交时量到的就是最终高度;引用推文里的头部不预留 */
+html[data-sxa-layout="below"] article[data-testid="tweet"] [data-testid="User-Name"] { position: relative; padding-bottom: 24px; }
+html[data-sxa-layout="below"] article[data-testid="tweet"] div[role="link"] [data-testid="User-Name"] { padding-bottom: 0; }
 /* 防跳动:X 头部行高 20px,各主题胶囊 19-22px。跟在名字后时上下各收 2px,
  * 无论哪个主题、有没有标签,头部行高都不变,推文高度也就不变。 */
 [data-testid="User-Name"] > .sxa-badge { margin-top: -2px; margin-bottom: -2px; }
+/* 贴纸主题自带上下 2px / 3px 留白(给倾斜和投影),总高 26px,多收一些才能压回 20px */
+[data-testid="User-Name"] > .sxa-badge[data-sxa-skin="sticker"] { margin-top: -3px; margin-bottom: -3px; }
+/* 单独一行的标签:绝对定位进预留的 24px 里,不参与行内排版;要压过上面各主题的负外边距规则 */
+[data-testid="User-Name"] > .sxa-badge.sxa-below,
+[data-testid="User-Name"] > .sxa-badge.sxa-below[data-sxa-skin] { position: absolute; left: 0; bottom: 0; height: 24px; margin: 0; }
 
 .sxa-p {
   display: inline-flex;
