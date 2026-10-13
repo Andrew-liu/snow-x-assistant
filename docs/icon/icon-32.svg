@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
+  <!-- Snow X Assistant 图标 32px 简化版:积雪去掉滴落,雪花只留六根粗主枝 -->
+  <rect x="1.5" y="1.5" width="29" height="29" rx="7" fill="#15181c" stroke="#2f3336" stroke-width="1"/>
+  <rect x="5" y="18" width="6" height="8" rx="2" fill="#00ba7c"/>
+  <rect x="13" y="13" width="6" height="13" rx="2" fill="#ffa31a"/>
+  <rect x="21" y="7" width="6" height="19" rx="2" fill="#f4212e"/>
+  <g fill="#f7f9fa">
+    <rect x="4" y="16.5" width="8" height="3.5" rx="1.75"/>
+    <rect x="12" y="11.5" width="8" height="3.5" rx="1.75"/>
+    <rect x="20" y="5.5" width="8" height="3.5" rx="1.75"/>
+  </g>
+  <g transform="translate(8 9)" stroke="#ffffff" stroke-width="1.8" stroke-linecap="round" fill="none">
+    <path d="M0 -4V4M-3.46 -2L3.46 2M-3.46 2L3.46 -2"/>
+  </g>
+</svg>

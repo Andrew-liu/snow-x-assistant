@@ -11,7 +11,7 @@
 
 <p>
   <img alt="Manifest V3" src="https://img.shields.io/badge/Manifest-V3-1d9bf0?style=flat-square">
-<img alt="Version" src="https://img.shields.io/badge/version-0.7.5-0f1419?style=flat-square">
+<img alt="Version" src="https://img.shields.io/badge/version-0.7.6-0f1419?style=flat-square">
   <img alt="Permissions" src="https://img.shields.io/badge/permissions-storage%20only-00ba7c?style=flat-square">
   <img alt="Network" src="https://img.shields.io/badge/extra%20requests-0-00ba7c?style=flat-square">
   <img alt="Build" src="https://img.shields.io/badge/build-none-8b98a5?style=flat-square">

@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="16" height="16" shape-rendering="crispEdges">
+  <!-- Snow X Assistant 图标 16px 像素版:柱顶 2px 白色积雪,左上角 2px 雪点 -->
+  <rect x="0.5" y="0.5" width="15" height="15" rx="3.5" fill="#15181c" stroke="#2f3336" stroke-width="1" shape-rendering="geometricPrecision"/>
+  <rect x="3" y="10" width="2" height="3" fill="#00ba7c"/>
+  <rect x="7" y="7" width="2" height="6" fill="#ffa31a"/>
+  <rect x="11" y="5" width="2" height="8" fill="#f4212e"/>
+  <g fill="#f7f9fa">
+    <rect x="3" y="8" width="2" height="2"/>
+    <rect x="7" y="5" width="2" height="2"/>
+    <rect x="11" y="3" width="2" height="2"/>
+    <rect x="3" y="3" width="2" height="2"/>
+  </g>
+</svg>
