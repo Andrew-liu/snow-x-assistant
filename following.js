@@ -201,20 +201,37 @@ html[data-sxa-mc-filter="oneway"] ${COL} :has(> [${HIT_ATTR}] + ${CELL_SEL} ${FO
     return strip;
   }
 
+  // 插到 tab 吸顶条下方。只会插在主列里:主列还没渲染时先不插,等下一轮 placeHost 再放,
+  // 绝不退回 body(那样会变成横跨整页的一条,盖住左右两栏)。
   function insertHost(host) {
     const col = document.querySelector(COL);
+    if (!col) return false;
     const tablist = findTablist();
     if (tablist) {
       let after = stickyStrip(tablist);
-      const next = after.nextElementSibling;
+      let next = after.nextElementSibling;
+      if (next === host) next = host.nextElementSibling;
       if (next && !next.querySelector(CELL_SEL) && next.tagName !== "SECTION" && next.getBoundingClientRect().height <= 8) after = next;
       after.after(host);
-      return;
+      return true;
     }
-    const section = col && col.querySelector("section");
-    if (section) { section.before(host); return; }
-    if (col) col.prepend(host);
-    else document.body.append(host);
+    const section = col.querySelector("section");
+    if (section) section.before(host);
+    else col.prepend(host);
+    return true;
+  }
+
+  // 工具栏是否已在正确位置:在主列里,且 tab 出现后紧跟在吸顶条(或其后的细分隔线)下方。
+  // 只在位置不对时才移动,避免移动节点触发 MutationObserver 后反复重排。
+  function hostPlaced(host) {
+    const col = document.querySelector(COL);
+    if (!col || !col.contains(host)) return false;
+    const tablist = findTablist();
+    if (!tablist) return true;
+    const strip = stickyStrip(tablist);
+    const prev = host.previousElementSibling;
+    if (prev === strip) return true;
+    return !!prev && prev.previousElementSibling === strip && !prev.querySelector(CELL_SEL) && prev.getBoundingClientRect().height <= 8;
   }
 
   function stickyTop() {
@@ -376,7 +393,8 @@ html[data-sxa-mc-filter="oneway"] ${COL} :has(> [${HIT_ATTR}] + ${CELL_SEL} ${FO
 
   function placeHost() {
     if (!ui) return;
-    if (!ui.host.isConnected) insertHost(ui.host);
+    if (!hostPlaced(ui.host)) insertHost(ui.host);
+    if (!ui.host.isConnected) return;
     const top = stickyTop() + "px";
     if (ui.host.style.top !== top) ui.host.style.top = top;
     const bg = document.body ? getComputedStyle(document.body).backgroundColor : "";

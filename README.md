@@ -11,7 +11,7 @@
 
 <p>
   <img alt="Manifest V3" src="https://img.shields.io/badge/Manifest-V3-1d9bf0?style=flat-square">
-<img alt="Version" src="https://img.shields.io/badge/version-0.7.6-0f1419?style=flat-square">
+<img alt="Version" src="https://img.shields.io/badge/version-0.7.7-0f1419?style=flat-square">
   <img alt="Permissions" src="https://img.shields.io/badge/permissions-storage%20only-00ba7c?style=flat-square">
   <img alt="Network" src="https://img.shields.io/badge/extra%20requests-0-00ba7c?style=flat-square">
   <img alt="Build" src="https://img.shields.io/badge/build-none-8b98a5?style=flat-square">
@@ -30,7 +30,7 @@
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/images/hero-dark.png">
   <source media="(prefers-color-scheme: light)" srcset="docs/images/hero-light.png">
-  <img src="docs/images/hero-dark.png" width="640" alt="推文头部的流速与账号标签,以及悬停详情卡">
+  <img src="docs/images/hero-dark.png" width="640" alt="推文头部的流速、AI 概率与账号标签(热度条主题)">
 </picture>
 
 </div>
@@ -76,11 +76,19 @@
 - 悬停任意标签,弹出账号与推文的详细数据卡:粉丝、关注、比值、注册时长,浏览、赞、转、评、藏和爆款分,以及 AI 检测命中的具体规则。
 - 自动适配 X 的浅色、暗蓝、纯黑三种背景,也可以在弹窗里固定为浅色或深色。
 - 支持中文和英文界面。
-- 标题行太挤时自动收起末尾的标签,完整数据看悬停卡;也可以选「单独一行」固定显示在名字下方。
+- 标签布局有三种:「自动」(默认,标题行太挤时收起末尾的标签,完整数据看悬停卡)、「跟在名字后」和「单独一行」(固定显示在名字下方)。
+
+<p align="center">
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/images/hovercard-dark.png">
+  <source media="(prefers-color-scheme: light)" srcset="docs/images/hovercard-light.png">
+  <img src="docs/images/hovercard-dark.png" width="296" alt="悬停详情卡:账号数据、推文流速与 AI 检测明细">
+</picture>
+</p>
 
 ## 主题
 
-八套主题,形状、字体与排版各不相同,不只是换个颜色。流速、AI 检测、账号标签和悬停卡共用同一套主题,AI 标签统一用紫色,与流速的暖色区分开。
+八套主题,形状、字体与排版各不相同,不只是换个颜色。默认主题为「热度条」。流速、AI 检测、账号标签和悬停卡共用同一套主题,AI 标签统一用紫色,与流速的暖色区分开。下图每个主题都展示了流速四档和 AI 检测的效果。
 
 <p align="center">
   <img src="docs/images/themes.png" width="900" alt="八套标签主题总览">
@@ -88,11 +96,11 @@
 
 | 主题 | 风格 | 流速的表达方式 |
 |---|---|---|
+| 热度条(默认) | 无框文字,质量标签带下划线 | 五格进度条,绿到红渐变 |
 | 信号灯 | 实心圆角胶囊 | 灰 / 绿 / 橙 / 红色块,光晕逐级增强 |
 | 徽章 | shields.io 两段式,方角 | 左侧写「流速」,右侧数值按档位上色 |
 | 贴纸 | 粗黑描边、硬投影、交替微倾 | 普通档虚线描边,爆款更歪更大 |
 | 终端 | 一整条命令行,等宽字体 | 普通档 `~` 前缀,其余为 🚀 加文字发光 |
-| 热度条 | 无框文字,质量标签带下划线(默认) | 五格进度条,绿到红渐变 |
 | 霓虹 | 透明底、发光描边 | 青 / 黄 / 洋红霓虹框 |
 | 原生文字 | 无框,`·` 分隔,最接近 X 原生 | 仅以亮色文字区分 |
 | 极光 | 渐变描边胶囊 | 渐变填充,爆款呼吸光晕 |
@@ -101,8 +109,9 @@
 
 <table>
 <tr>
-<td align="center" width="50%"><img src="docs/images/popup-tags.png" width="320" alt="标签设置"><br><sub>标签:开关、显示项与流速阈值,顶部实时预览</sub></td>
-<td align="center" width="50%"><img src="docs/images/popup-themes.png" width="320" alt="主题选择"><br><sub>主题:大卡片预览,可切换浅色 / 深色背景对比</sub></td>
+<td align="center" width="33%"><img src="docs/images/popup-tags.png" width="280" alt="标签设置"><br><sub>标签:开关、显示项与流速阈值,顶部实时预览</sub></td>
+<td align="center" width="33%"><img src="docs/images/popup-themes.png" width="280" alt="主题选择"><br><sub>主题:大卡片预览,可切换浅色 / 深色背景对比</sub></td>
+<td align="center" width="33%"><img src="docs/images/popup-general.png" width="280" alt="通用设置"><br><sub>通用:外观、语言、作者与项目</sub></td>
 </tr>
 </table>
 
@@ -188,7 +197,7 @@
 
 - **只在自己的关注页出现**,其他页面不加载任何清理逻辑。
 - **宁漏勿误**:同时参考页面上的「关注了你」标记和 X 返回的关系数据,无法确认时不会被选为未回关。
-- **模拟真人节奏**:点击 X 自带的「正在关注 → 取消关注」按钮完成,默认间隔 1.5 秒并加随机抖动,可在 1 到 5 秒之间调整。
+- **模拟真人节奏**:点击 X 自带的「正在关注 → 取消关注」按钮完成,间隔可选 1、1.5、3、5 秒四档,默认 1.5 秒,并加随机抖动。
 - **有上限,可中断**:滚动一小时内最多取关 50 人,到量自动暂停并显示还需等待的分钟数,记录跨刷新和多个标签页共享。执行前二次确认,过程中随时可停;只有按钮真正变回「关注」才计为成功。
 
 > [!WARNING]
@@ -269,6 +278,12 @@ snow-x-assistant
 <summary><b>浏览时页面会不会乱跳?</b></summary>
 <br>
 X 的时间线是虚拟列表,每条推文按测量好的高度定位。X 在渲染时就量好高度,插件再改动高度会让往上翻时内容乱跳。0.7.4 起插件不再改变推文高度:「自动」和「跟在名字后」只在名字后显示,「单独一行」由样式固定预留一行,不做滚动补偿。
+</details>
+
+<details>
+<summary><b>关注页的工具栏横跨了整个页面?</b></summary>
+<br>
+这是旧版本的问题:X 重新渲染关注页时,工具栏可能被挂到页面最外层。新版本只把工具栏插在主列的「正在关注」页签下方,并在每次刷新时校正位置。如果仍遇到,刷新页面或在扩展页点击刷新即可。
 </details>
 
 <details>
