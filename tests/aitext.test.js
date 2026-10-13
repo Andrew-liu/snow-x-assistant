@@ -134,7 +134,7 @@ test("readTweet 读取正文,长推优先 note_tweet;AI 设置有校验", () => 
   assert.equal(P.extract(base).tweets[0].text, "short");
   const long = Object.assign({}, base, { note_tweet: { note_tweet_results: { result: { text: "完整长文" } } } });
   assert.equal(P.extract(long).tweets[0].text, "完整长文");
-  assert.equal(P.mergeSettings({}).showAiText, true);
+  assert.equal(P.mergeSettings({}).showAiText, false);
   assert.equal("aiMinScore" in P.mergeSettings({ aiMinScore: 70 }), false); // 阈值已取消,旧存储里的字段直接丢弃
 });
 

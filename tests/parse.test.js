@@ -74,7 +74,21 @@ test("质量标签:互关、大V、疑似互粉号", () => {
   const big = { followers: 20000, following: 100, followedBy: true, iFollow: true, createdAt: null };
   assert.deepEqual(P.tags(big, null, NOW).map((t) => t.key), ["relation", "bigV"]);
   const farm = { followers: 1500, following: 1400, followedBy: false, iFollow: false, createdAt: null };
-  assert.deepEqual(P.tags(farm, null, NOW).map((t) => t.key), ["farm"]);
+  assert.deepEqual(P.tags(farm, null, NOW).map((t) => t.key), []); // 疑似互粉号默认关闭
+  const on = { tags: Object.assign({}, P.DEFAULTS.tags, { farm: true }) };
+  assert.deepEqual(P.tags(farm, null, NOW, on).map((t) => t.key), ["farm"]);
+});
+
+test("默认设置:热度条、AI 检测关、关粉比开、标签显示全部、互粉号/新号/老号关", () => {
+  const d = P.mergeSettings();
+  assert.equal(d.skin, "heatbar");
+  assert.equal(d.showAiText, false);
+  assert.equal(d.showRatio, true);
+  assert.equal(d.maxTags, 7);
+  assert.deepEqual([d.tags.farm, d.tags.newAcct, d.tags.oldAcct], [false, false, false]);
+  // 用户已保存的选择不受默认值改动影响
+  const kept = P.mergeSettings({ skin: "signal", showAiText: true, maxTags: 3, tags: { oldAcct: true } });
+  assert.deepEqual([kept.skin, kept.showAiText, kept.maxTags, kept.tags.oldAcct], ["signal", true, 3, true]);
 });
 
 test("mergeSettings 校正非法值并保留标签开关", () => {
@@ -96,11 +110,11 @@ test("mergeSettings 校正非法值并保留标签开关", () => {
 });
 
 test("mergeSettings 主题与流速独立开关", () => {
-  assert.equal(P.mergeSettings().skin, "signal");
+  assert.equal(P.mergeSettings().skin, "heatbar");
   assert.equal(P.mergeSettings({ skin: "shield" }).skin, "shield");
-  assert.equal(P.mergeSettings({ skin: "candy" }).skin, "signal");
-  assert.equal(P.mergeSettings({ skin: "__proto__" }).skin, "signal");
-  assert.equal(P.mergeSettings({ skin: 3 }).skin, "signal");
+  assert.equal(P.mergeSettings({ skin: "candy" }).skin, "heatbar");
+  assert.equal(P.mergeSettings({ skin: "__proto__" }).skin, "heatbar");
+  assert.equal(P.mergeSettings({ skin: 3 }).skin, "heatbar");
   const s = P.mergeSettings({ tagsEnabled: false, showVelocity: true });
   assert.equal(s.tagsEnabled, false);
   assert.equal(s.showVelocity, true);

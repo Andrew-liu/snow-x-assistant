@@ -11,7 +11,7 @@
 
 <p>
   <img alt="Manifest V3" src="https://img.shields.io/badge/Manifest-V3-1d9bf0?style=flat-square">
-<img alt="Version" src="https://img.shields.io/badge/version-0.7.4-0f1419?style=flat-square">
+<img alt="Version" src="https://img.shields.io/badge/version-0.7.5-0f1419?style=flat-square">
   <img alt="Permissions" src="https://img.shields.io/badge/permissions-storage%20only-00ba7c?style=flat-square">
   <img alt="Network" src="https://img.shields.io/badge/extra%20requests-0-00ba7c?style=flat-square">
   <img alt="Build" src="https://img.shields.io/badge/build-none-8b98a5?style=flat-square">
@@ -88,11 +88,11 @@
 
 | 主题 | 风格 | 流速的表达方式 |
 |---|---|---|
-| 信号灯 | 实心圆角胶囊(默认) | 灰 / 绿 / 橙 / 红色块,光晕逐级增强 |
+| 信号灯 | 实心圆角胶囊 | 灰 / 绿 / 橙 / 红色块,光晕逐级增强 |
 | 徽章 | shields.io 两段式,方角 | 左侧写「流速」,右侧数值按档位上色 |
 | 贴纸 | 粗黑描边、硬投影、交替微倾 | 普通档虚线描边,爆款更歪更大 |
 | 终端 | 一整条命令行,等宽字体 | 普通档 `~` 前缀,其余为 🚀 加文字发光 |
-| 热度条 | 无框文字,质量标签带下划线 | 五格进度条,绿到红渐变 |
+| 热度条 | 无框文字,质量标签带下划线(默认) | 五格进度条,绿到红渐变 |
 | 霓虹 | 透明底、发光描边 | 青 / 黄 / 洋红霓虹框 |
 | 原生文字 | 无框,`·` 分隔,最接近 X 原生 | 仅以亮色文字区分 |
 | 极光 | 渐变描边胶囊 | 渐变填充,爆款呼吸光晕 |
@@ -154,7 +154,7 @@
 
 「不是……而是……」这类句式偶尔用一次是正常修辞,只命中一次时按半分计,反复使用才全额累加。中文里出现笑死、卧槽、属于是、句末「吧/啊」等口语信号时,整体分数打七折。分数曲线按推文的长度校准,一两处典型套路就能到 50% 左右,较长的文本会相应放宽。
 
-开关打开后,每条有正文的推文都会在标签行显示 `AI xx%`:
+开关默认关闭,需在弹窗「标签」页手动打开。打开后,每条有正文的推文都会在标签行显示 `AI xx%`:
 
 | AI 概率 | 显示 |
 |---|---|
@@ -168,7 +168,7 @@
 
 ### 账号标签
 
-粉丝数前的圆点表示量级:蓝色千级、紫色万级、粉色十万级、橙色百万级。质量标签基于经验阈值,只作参考:
+粉丝数前的圆点表示量级:蓝色千级、紫色万级、粉色十万级、橙色百万级。默认显示粉丝数和关注/粉丝比,质量标签全部显示;其中疑似互粉号、新号、老号默认关闭,可在弹窗里单独打开。质量标签基于经验阈值,只作参考:
 
 | 标签 | 判定规则 |
 |---|---|
