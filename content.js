@@ -482,7 +482,7 @@
       const who = E("div", "sxa-who");
       who.append(E("b", null, u.name || handle), E("span", null, "@" + handle));
       head.append(who);
-      const rel = u.followedBy && u.iFollow ? T("tag.mutual") : u.followedBy ? T("tag.followsYou") : u.iFollow ? T("tip.following") : "";
+      const rel = u.followedBy && u.iFollow ? T("tag.mutual") : u.followedBy ? T("tag.followsYou") : u.iFollow ? T("tip.following") + " · " + T("tag.notFollowBack") : "";
       if (rel) head.append(E("span", "sxa-pill", rel));
       box.append(head);
 

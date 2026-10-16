@@ -72,3 +72,17 @@ test("质量标签带上用于翻译的 tid", () => {
   assert.equal(P.tags({ ...base, followedBy: true, iFollow: false }, null, now)[0].tid, "followsYou");
   for (const k of Object.keys(P.DEFAULTS.tags)) assert.ok(I.DICT.en["tag." + k], k);
 });
+
+test("未回关:只标我关注了但对方没关注我的账号", () => {
+  const now = Date.parse("2026-10-10T12:00:00Z");
+  const base = { handle: "a", followers: 100, following: 100, createdAt: null };
+  const keys = (u, cfg) => P.tags({ ...base, ...u }, null, now, cfg).map((t) => t.key);
+  assert.deepEqual(keys({ followedBy: false, iFollow: true }), ["notFollowBack"]);
+  assert.deepEqual(keys({ followedBy: true, iFollow: true }), ["relation"]);
+  assert.deepEqual(keys({ followedBy: true, iFollow: false }), ["relation"]);
+  assert.deepEqual(keys({ followedBy: false, iFollow: false }), []); // 陌生人不标
+  const off = P.mergeSettings({ tags: { notFollowBack: false } });
+  assert.deepEqual(keys({ followedBy: false, iFollow: true }, off), []);
+  assert.equal(P.mergeSettings({}).tags.notFollowBack, true);
+  assert.ok(I.DICT.zh["tag.notFollowBack"]);
+});
