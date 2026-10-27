@@ -45,6 +45,8 @@
       settings = s;
       settingsVer++;
       fullPass = true;
+      if (!s.showDownload) document.querySelectorAll(".sxa-dl-wrap").forEach((b) => b.remove());
+      else document.querySelectorAll(".sxa-dl").forEach((b) => { if (!b.dataset.state) b.title = T("dl.btn"); });
       syncLang();
       syncLayout();
       applyDebug();
@@ -98,6 +100,8 @@
     for (const t of ts) {
       const old = tweets.peek(t.id);
       if (old && !t.text && old.text) t.text = old.text; // 有的接口不带正文,保留之前拿到的
+      if (old && !t.videos.length && old.videos && old.videos.length) t.videos = old.videos;
+      if (old && !t.quotedId && old.quotedId) t.quotedId = old.quotedId;
       if (!old || t.views >= old.views) tweets.set(t.id, t);
       else tweets.get(t.id);
       stats.add(t);
@@ -256,6 +260,7 @@
     const inQuote = !!(q && article && article.contains(q));
     const handle = handleOf(un);
     const id = tweetIdFor(un, article);
+    if (!inQuote && article && article.querySelector(HEAD_SEL) === un) placeDownload(article, id);
     let tweet = id ? tweets.get(id) : null;
     if (!tweet && id && settings.showVelocity) {
       tweet = domTweet(article, id, handle);
@@ -322,7 +327,8 @@
   const HEAD_SEL = '[data-testid="User-Name"]';
   const CELL_SEL = '[data-testid="UserCell"]';
   const TARGET_SEL = `${HEAD_SEL}, ${CELL_SEL}`;
-  const OWN_SEL = ".sxa-badge, #sxa-tip, #sxa-hud, .sxa-mc-bar";
+  const OWN_SEL = ".sxa-badge, #sxa-tip, #sxa-hud, .sxa-mc-bar, .sxa-dl-wrap";
+  const VIDEO_SEL = '[data-testid="videoPlayer"], [data-testid="videoComponent"], video';
   const added = [];            // 待检查的新增节点
   const tracked = new Set();   // 已交给 IntersectionObserver 的元素
   const visible = new Set();   // 视口上下 800px 内的元素
@@ -353,6 +359,13 @@
     const up = el.closest(TARGET_SEL);
     if (up) track(up);
     for (const n of el.querySelectorAll(TARGET_SEL)) track(n);
+    // 视频播放器常晚于推文头部挂载:出现时让所在推文的头部重查一次下载按钮
+    if (settings && settings.showDownload) {
+      const v = el.matches(VIDEO_SEL) ? el : el.querySelector(VIDEO_SEL);
+      const art = v && v.closest('article[data-testid="tweet"]');
+      const head = art && art.querySelector(HEAD_SEL);
+      if (head && !art.querySelector(".sxa-dl-wrap")) track(head);
+    }
   }
 
   // ---------- 防跳动 ----------
@@ -367,7 +380,7 @@
     for (const el of tracked) if (!el.isConnected) untrack(el);
     if (!settings) return;
     syncTheme();
-    if (!settings.tagsEnabled && !settings.showVelocity && !settings.showAiText) {
+    if (!settings.tagsEnabled && !settings.showVelocity && !settings.showAiText && !settings.showDownload) {
       dirty.clear();
       fullPass = false;
       cleanup();
@@ -418,6 +431,130 @@
     fullPass = true;
     scheduleRender();
   }, 60e3);
+
+  // ---------- 视频下载 ----------
+  // 优先用 GraphQL 里已缓存的视频直链;没有时让后台请求 X 公开嵌入接口。下载交给后台调用 chrome.downloads。
+  function mediaRecord(id) {
+    const t = id ? tweets.peek(id) : null;
+    if (!t) return null;
+    const q = t.quotedId ? tweets.peek(t.quotedId) : null;
+    const rec = {
+      id: t.id, author: t.author || "", text: (t.text || "").slice(0, 280), videos: t.videos || [],
+      quoted: q ? { id: q.id, author: q.author || "", text: (q.text || "").slice(0, 280), videos: q.videos || [], quoted: null } : null,
+    };
+    return P.pickMedia(rec) ? rec : null;
+  }
+
+  function send(msg) {
+    return new Promise((ok, fail) => {
+      try {
+        chrome.runtime.sendMessage(msg, (r) => {
+          const err = chrome.runtime.lastError;
+          if (err) fail(new Error(err.message || "failed"));
+          else ok(r);
+        });
+      } catch (e) { fail(e); } // 扩展被刷新后旧页面的上下文会失效
+    });
+  }
+
+  const SVG_NS = "http://www.w3.org/2000/svg";
+  function dlIcon() {
+    const svg = document.createElementNS(SVG_NS, "svg");
+    svg.setAttribute("viewBox", "0 0 24 24");
+    svg.setAttribute("aria-hidden", "true");
+    const path = document.createElementNS(SVG_NS, "path");
+    path.setAttribute("d", "M11 3h2v9.59l3.3-3.3 1.4 1.42L12 16.4l-5.7-5.7 1.4-1.42 3.3 3.3V3zM4 15h2v4h12v-4h2v6H4v-6z");
+    svg.append(path);
+    return svg;
+  }
+
+  function setDlState(btn, state, title) {
+    clearTimeout(btn.__sxaTimer);
+    if (state) btn.dataset.state = state; else delete btn.dataset.state;
+    btn.title = title || T("dl.btn");
+    btn.setAttribute("aria-label", btn.title);
+    if (state === "done" || state === "err") btn.__sxaTimer = setTimeout(() => setDlState(btn, null), 3500);
+  }
+
+  function dlErrorText(code) {
+    return T(P.dlErrorKey(code), { e: code });
+  }
+
+  async function runDownload(btn, id) {
+    if (btn.dataset.state === "busy") return;
+    setDlState(btn, "busy", T("dl.btnBusy"));
+    try {
+      let rec = mediaRecord(id);
+      if (!rec) {
+        const r = await send({ type: "sxa-resolve", id });
+        if (!r || !r.ok) throw new Error((r && r.error) || "failed");
+        rec = r.rec;
+      }
+      const m = P.pickMedia(rec);
+      if (!m) throw new Error("no_video");
+      const labels = [];
+      for (let i = 0; i < m.videos.length; i++) {
+        const v = m.videos[i];
+        const best = v.variants[0];
+        const r = await send({ type: "sxa-download", url: best.url, filename: P.videoFileName(m.author, m.id, i, m.videos.length, best, v.kind) });
+        if (!r || !r.ok) throw new Error((r && r.error) || "failed");
+        labels.push(P.qualityLabel(best, v.kind));
+      }
+      setDlState(btn, "done", T("dl.btnDone") + " · " + labels.join(" / "));
+    } catch (e) {
+      setDlState(btn, "err", dlErrorText(e && e.message));
+    }
+  }
+
+  function makeDlButton(id) {
+    const wrap = E("div", "sxa-dl-wrap");
+    wrap.dataset.sxaTweet = id;
+    const btn = E("button", "sxa-dl");
+    btn.type = "button";
+    btn.title = T("dl.btn");
+    btn.setAttribute("aria-label", btn.title);
+    btn.append(dlIcon());
+    // 不让点击冒泡给 X,否则会打开推文详情
+    C.stopEvents(wrap, ["mousedown", "mouseup", "pointerdown", "pointerup", "touchstart", "touchend"]);
+    btn.addEventListener("click", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      runDownload(btn, id);
+    });
+    wrap.append(btn);
+    return wrap;
+  }
+
+  // 本条推文自己的操作栏(跳过引用推文),取最后一个带回复按钮的 group
+  function actionBarOf(article) {
+    let bar = null;
+    for (const g of article.querySelectorAll('[role="group"]')) {
+      if (g.closest('article[data-testid="tweet"]') !== article) continue;
+      if (!g.querySelector('[data-testid="reply"]')) continue;
+      bar = g;
+    }
+    return bar;
+  }
+
+  const hasVideoDom = (article) => !!article.querySelector(VIDEO_SEL);
+
+  function placeDownload(article, id) {
+    const old = article.querySelector(".sxa-dl-wrap");
+    const want = settings.showDownload && id && (mediaRecord(id) || hasVideoDom(article));
+    if (!want) { if (old) old.remove(); return; }
+    if (old && old.dataset.sxaTweet === id) return;
+    if (old) old.remove();
+    const bar = actionBarOf(article);
+    if (bar) bar.append(makeDlButton(id));
+  }
+
+  // 弹窗粘贴链接后先问页面缓存
+  if (typeof chrome !== "undefined" && chrome.runtime && chrome.runtime.onMessage) {
+    chrome.runtime.onMessage.addListener((msg, sender, reply) => {
+      if (!msg || msg.type !== "sxa-media" || sender.id !== chrome.runtime.id) return;
+      reply(mediaRecord(String(msg.id || "")));
+    });
+  }
 
   // ---------- 调试条 ----------
   let hud = null;

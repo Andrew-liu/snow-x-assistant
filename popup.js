@@ -6,9 +6,10 @@
   const I = window.SnowXI18n;
   const T = (k, v) => I.t(k, v);
   const TAB_KEY = "sxa_popup_tab";
-  const TABS = ["tags", "skin", "mutual", "general"];
+  const TABS = ["tags", "skin", "dl", "mutual", "general"];
   const HOUR = 3600e3;
   let settings = null;
+  let onLangChange = null; // 下载页注册,语言切换后重画
 
   // 深浅色:设置里选了浅色 / 深色就用它,自动时跟随系统;主题页可临时切换预览背景(不保存)
   const media = window.matchMedia("(prefers-color-scheme: dark)");
@@ -35,6 +36,8 @@
     });
     document.querySelectorAll("[data-i18n-title]").forEach((el) => { el.title = T(el.dataset.i18nTitle); });
     document.querySelectorAll("[data-i18n-aria]").forEach((el) => { el.setAttribute("aria-label", T(el.dataset.i18nAria)); });
+    document.querySelectorAll("[data-i18n-ph]").forEach((el) => { el.placeholder = T(el.dataset.i18nPh); });
+    if (onLangChange) onLangChange();
   }
   applyI18n();
 
@@ -177,6 +180,139 @@
     document.getElementById("thresholds").dataset.sxaSkin = settings.skin;
     renderPreview(now);
   }
+
+  // ---------- 视频下载 ----------
+  // 解析顺序:已打开的 X 标签页里的 GraphQL 缓存 → 后台请求 X 公开嵌入接口
+  const dlForm = document.getElementById("dlForm");
+  const dlInput = document.getElementById("dlInput");
+  const dlGo = document.getElementById("dlGo");
+  const dlStatus = document.getElementById("dlStatus");
+  const dlResult = document.getElementById("dlResult");
+  const X_TABS = ["https://x.com/*", "https://twitter.com/*"];
+  let dlState = null; // { rec, media, source } 最近一次解析结果,切语言时重画
+  let dlMsg = null;   // { key, vars, kind } 当前状态提示
+
+  const sendBg = (msg) => new Promise((ok) => {
+    try {
+      chrome.runtime.sendMessage(msg, (r) => { void chrome.runtime.lastError; ok(r || null); });
+    } catch (_) { ok(null); }
+  });
+
+  const withTimeout = (p, ms) => Promise.race([p, new Promise((ok) => setTimeout(() => ok(null), ms))]);
+
+  async function fromTabs(id) {
+    let tabs = [];
+    try { tabs = await chrome.tabs.query({ url: X_TABS }); } catch (_) { return null; }
+    const asks = tabs.map((t) => withTimeout(chrome.tabs.sendMessage(t.id, { type: "sxa-media", id }).catch(() => null), 800));
+    for (const r of await Promise.all(asks)) if (r && P.pickMedia(r)) return r;
+    return null;
+  }
+
+  function setStatus(key, vars, kind) {
+    dlMsg = key ? { key, vars, kind } : null;
+    if (!dlMsg) { dlStatus.hidden = true; return; }
+    dlStatus.textContent = T(key, vars);
+    dlStatus.dataset.kind = kind || "";
+    dlStatus.hidden = false;
+  }
+
+  function renderDl() {
+    dlResult.replaceChildren();
+    if (!dlState) { dlResult.hidden = true; return; }
+    const { rec, media, source } = dlState;
+    const head = B.el("div", "dl-head");
+    const who = B.el("span", "dl-who", "@" + (media.author || "x"));
+    const src = B.el("span", "dl-src", T(source === "cache" ? "dl.fromCache" : "dl.fromApi"));
+    head.append(who, src);
+    dlResult.append(head);
+    if (media !== rec) dlResult.append(B.el("p", "dl-quoted", T("dl.quoted")));
+    if (media.text) dlResult.append(B.el("p", "dl-text", media.text));
+    media.videos.forEach((v, i) => {
+      const item = B.el("div", "dl-item");
+      if (v.thumb && /^https:\/\/pbs\.twimg\.com\//.test(v.thumb)) {
+        const img = document.createElement("img");
+        img.className = "dl-thumb";
+        img.alt = "";
+        img.loading = "lazy";
+        img.referrerPolicy = "no-referrer";
+        img.src = v.thumb;
+        item.append(img);
+      }
+      const body = B.el("div", "dl-body");
+      const title = B.el("div", "dl-title");
+      title.append(B.el("b", "", T(v.kind === "gif" ? "dl.gif" : "dl.video", { n: media.videos.length > 1 ? i + 1 : "" }).trim()));
+      const dur = P.fmtDuration(v.durationMs);
+      if (dur) title.append(B.el("span", "dl-dur", dur));
+      body.append(title);
+      const list = B.el("div", "dl-variants");
+      v.variants.forEach((variant, j) => {
+        const btn = B.el("button", "dl-variant" + (j === 0 ? " best" : ""));
+        btn.type = "button";
+        btn.append(B.el("b", "", P.qualityLabel(variant, v.kind)));
+        const br = P.fmtBitrate(variant.bitrate);
+        if (br) btn.append(B.el("small", "", br));
+        btn.addEventListener("click", () => startDownload(btn, media, i, variant, v.kind));
+        list.append(btn);
+      });
+      body.append(list);
+      item.append(body);
+      dlResult.append(item);
+    });
+    dlResult.hidden = false;
+  }
+
+  async function startDownload(btn, media, index, variant, kind) {
+    btn.disabled = true;
+    const q = P.qualityLabel(variant, kind);
+    const r = await sendBg({ type: "sxa-download", url: variant.url, filename: P.videoFileName(media.author, media.id, index, media.videos.length, variant, kind) });
+    btn.disabled = false;
+    if (r && r.ok) setStatus("dl.started", { q }, "ok");
+    else setStatus("dl.failed", { e: (r && r.error) || "failed" }, "err");
+  }
+
+  async function resolveInput() {
+    const id = P.tweetIdFromInput(dlInput.value);
+    dlState = null;
+    renderDl();
+    if (!id) { setStatus("dl.err.badUrl", null, "err"); return; }
+    dlGo.disabled = true;
+    setStatus("dl.loading", null, "");
+    try {
+      let rec = await fromTabs(id);
+      let source = "cache";
+      if (!rec) {
+        const r = await sendBg({ type: "sxa-resolve", id });
+        if (!r || !r.ok) { const code = (r && r.error) || "failed"; setStatus(P.dlErrorKey(code), { e: code }, "err"); return; }
+        rec = r.rec;
+        source = "api";
+      }
+      const media = P.pickMedia(rec);
+      if (!media) { setStatus("dl.err.noVideo", null, "err"); return; }
+      dlState = { rec, media, source };
+      setStatus(null);
+      renderDl();
+    } finally {
+      dlGo.disabled = false;
+    }
+  }
+
+  // 切换语言时重画结果和提示
+  function dlRefresh() {
+    if (dlMsg) setStatus(dlMsg.key, dlMsg.vars, dlMsg.kind);
+    renderDl();
+  }
+  onLangChange = dlRefresh;
+
+  dlForm.addEventListener("submit", (e) => { e.preventDefault(); resolveInput(); });
+  dlInput.addEventListener("paste", () => setTimeout(() => { if (P.tweetIdFromInput(dlInput.value)) resolveInput(); }, 0));
+
+  // 当前标签页正好是推文详情页时,自动填入链接
+  try {
+    chrome.tabs.query({ active: true, currentWindow: true }).then((tabs) => {
+      const url = tabs && tabs[0] && tabs[0].url;
+      if (url && !dlInput.value && /^https:\/\/(x|twitter)\.com\//.test(url) && P.tweetIdFromInput(url)) dlInput.value = url;
+    }).catch(() => {});
+  } catch (_) {}
 
   C.loadSettings((s) => {
     settings = s;

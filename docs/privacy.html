@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Snow X Assistant 隐私政策 / Privacy Policy</title>
+<style>
+  body { max-width: 760px; margin: 40px auto; padding: 0 20px; font: 15px/1.7 -apple-system, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif; color: #0f1419; }
+  h1 { font-size: 26px; margin-bottom: 4px; }
+  h2 { font-size: 19px; margin-top: 32px; border-bottom: 1px solid #e6ecf0; padding-bottom: 6px; }
+  code { background: #f2f4f6; padding: 1px 5px; border-radius: 4px; font-size: 13px; }
+  .muted { color: #536471; font-size: 13px; }
+  hr { border: 0; border-top: 2px solid #e6ecf0; margin: 48px 0; }
+</style>
+</head>
+<body>
+
+<h1>Snow X Assistant 隐私政策</h1>
+<p class="muted">生效日期：2026-10-27 · 适用版本：0.8.0 及以后</p>
+
+<h2>概述</h2>
+<p>Snow X Assistant 是一个只在 x.com 和 twitter.com 上运行的浏览器扩展。它不收集、不上传、不出售任何个人数据，没有开发者自己的服务器，也不包含统计、广告或追踪代码。</p>
+
+<h2>扩展会读取哪些数据</h2>
+<p>在你浏览 x.com 时，扩展会读取 X 页面自己已经加载的数据（X 网页本身发出的 GraphQL 响应），包括账号的粉丝数、关注数、注册时间，以及推文的浏览量、发布时间、正文和视频地址。这些数据只用于在页面上显示标签、流速、AI 文本概率和视频下载按钮，只保存在浏览器内存里，关闭页面即丢弃。</p>
+<p>扩展不读取你的密码、Cookie、私信、浏览历史，也不读取 x.com 以外任何网站的内容。</p>
+
+<h2>本地存储</h2>
+<p>扩展用 <code>chrome.storage.local</code> 保存你的设置（各项开关、主题、语言等），以及使用互关清理时最近一小时内的取关时间（只有时间，没有账号信息，用于限制每小时取关数量）。这些数据只存在你本机的浏览器里，开发者无法访问，卸载扩展即全部删除。</p>
+
+<h2>网络请求</h2>
+<p>扩展只在一种情况下主动发出网络请求：当你使用视频下载功能，而页面上没有该推文的视频信息时，扩展会向 X 官方嵌入组件使用的公开接口 <code>cdn.syndication.twimg.com</code> 请求这条推文的公开信息。请求只包含推文 ID，不携带 Cookie 或任何登录凭证。</p>
+<p>下载视频时，浏览器会从 X 的视频服务器 <code>video.twimg.com</code> 直接下载文件，保存到你电脑的下载目录。</p>
+<p>除此之外，扩展不会向任何其他服务器发送数据。</p>
+
+<h2>第三方共享</h2>
+<p>扩展不与任何第三方共享数据。不出售数据，不用于广告、用户画像、信用评估或任何与扩展功能无关的用途。</p>
+
+<h2>视频下载</h2>
+<p>视频下载功能仅供个人保存和学习使用。视频版权归原作者所有，请遵守 X 服务条款和当地法律，不要转载或用于商业用途。</p>
+
+<h2>变更与联系</h2>
+<p>本政策如有变化，会在此页面更新并修改生效日期。源代码公开在 <a href="https://github.com/Andrew-liu/snow-x-assistant">GitHub</a>，有问题可以在仓库提 Issue，或在 X 上联系 <a href="https://x.com/xueyu1125">@xueyu1125</a>。</p>
+
+<hr>
+
+<h1>Snow X Assistant Privacy Policy</h1>
+<p class="muted">Effective date: 2026-10-27 · Applies to version 0.8.0 and later</p>
+
+<h2>Summary</h2>
+<p>Snow X Assistant is a browser extension that runs only on x.com and twitter.com. It does not collect, upload or sell any personal data. It has no developer-operated server and contains no analytics, advertising or tracking code.</p>
+
+<h2>Data the extension reads</h2>
+<p>While you browse x.com, the extension reads data that the X web page has already loaded (the GraphQL responses requested by X itself), such as follower and following counts, account creation dates, tweet view counts, post times, tweet text and video URLs. This data is used only to display tags, view velocity, AI-text likelihood and a video download button on the page. It is kept in memory only and discarded when the page is closed.</p>
+<p>The extension does not read your passwords, cookies, direct messages or browsing history, and does not read any website other than x.com and twitter.com.</p>
+
+<h2>Local storage</h2>
+<p>The extension uses <code>chrome.storage.local</code> to save your settings (feature toggles, theme, language, etc.) and, when you use following cleanup, the times of unfollows in the last hour (timestamps only, no account information, used to enforce an hourly limit). This data stays in your browser on this device, the developer cannot access it, and it is removed when you uninstall the extension.</p>
+
+<h2>Network requests</h2>
+<p>The extension makes a network request in only one case: when you use video download and the page has no video information for that tweet, it requests the tweet's public information from <code>cdn.syndication.twimg.com</code>, the public endpoint used by X's official embed widget. The request contains only the tweet ID and carries no cookies or credentials.</p>
+<p>When you download a video, the browser fetches the file directly from X's video server <code>video.twimg.com</code> and saves it to your downloads folder.</p>
+<p>The extension sends no data to any other server.</p>
+
+<h2>Third parties</h2>
+<p>No data is shared with third parties. No data is sold or used for advertising, profiling, credit assessment or any purpose unrelated to the extension's features.</p>
+
+<h2>Video download</h2>
+<p>Video download is intended for personal saving and study only. Video copyright belongs to the original creators. Please follow the X Terms of Service and local laws, and do not repost or use downloaded videos commercially.</p>
+
+<h2>Changes and contact</h2>
+<p>If this policy changes, this page will be updated with a new effective date. The source code is public on <a href="https://github.com/Andrew-liu/snow-x-assistant">GitHub</a>. For questions, open an issue in the repository or contact <a href="https://x.com/xueyu1125">@xueyu1125</a> on X.</p>
+
+</body>
+</html>

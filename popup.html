@@ -13,12 +13,13 @@
       <h1>Snow X Assistant</h1>
       <span id="ver" class="ver"></span>
     </div>
-    <span class="local" data-i18n="local" data-i18n-title="local.title" title="只读取 X 页面已经加载的数据">本地运行</span>
+    <span class="local" data-i18n="local" data-i18n-title="local.title" title="标签只读取 X 页面已加载的数据;视频下载在页面没有缓存时会请求 X 公开的嵌入接口">本地运行</span>
   </header>
 
   <nav class="tabs" role="tablist">
     <button type="button" role="tab" id="tab-tags" data-tab="tags" aria-controls="panel-tags" data-i18n="tab.tags">标签</button>
     <button type="button" role="tab" id="tab-skin" data-tab="skin" aria-controls="panel-skin" data-i18n="tab.skin">主题</button>
+    <button type="button" role="tab" id="tab-dl" data-tab="dl" aria-controls="panel-dl" data-i18n="tab.dl">下载</button>
     <button type="button" role="tab" id="tab-mutual" data-tab="mutual" aria-controls="panel-mutual" data-i18n="tab.mutual">互关清理</button>
     <button type="button" role="tab" id="tab-general" data-tab="general" aria-controls="panel-general" data-i18n="tab.general">通用</button>
   </nav>
@@ -125,6 +126,31 @@
       </div>
       <label class="row"><span class="label" data-i18n="debug">调试信息条</span><input type="checkbox" class="switch" data-key="debug"></label>
     </section>
+  </div>
+
+  <!-- ========== 下载 ========== -->
+  <div class="panel" id="panel-dl" role="tabpanel" aria-labelledby="tab-dl" hidden>
+    <section class="card dl-card">
+      <div class="row col">
+        <label class="label" for="dlInput"><b data-i18n="dl.paste">粘贴推文链接</b></label>
+        <form class="dl-form" id="dlForm" autocomplete="off">
+          <input type="text" id="dlInput" spellcheck="false" placeholder="https://x.com/用户名/status/…" data-i18n-ph="dl.ph">
+          <button type="submit" id="dlGo" class="primary" data-i18n="dl.go">解析</button>
+        </form>
+        <p id="dlStatus" class="dl-status" role="status" hidden></p>
+      </div>
+      <div id="dlResult" class="dl-result" hidden></div>
+    </section>
+
+    <section class="card">
+      <label class="row head">
+        <span class="label"><b data-i18n="dl.toggle">时间线下载按钮</b><small data-i18n="dl.toggle.desc">带视频的推文操作栏多一个下载按钮,点一下下载最高清晰度</small></span>
+        <input type="checkbox" class="switch" data-key="showDownload">
+      </label>
+    </section>
+
+    <p class="note" data-i18n="dl.note">只保存 mp4 直链。部分视频 720p 以上只有分段流,这里最高给到可直接下载的清晰度。</p>
+    <p class="dl-legal" data-i18n="dl.legal">仅限个人保存与学习使用。视频版权归原作者所有,请遵守 X 服务条款和当地法律,不要转载或用于商业用途。</p>
   </div>
 
   <!-- ========== 互关清理 ========== -->

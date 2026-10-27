@@ -7,12 +7,12 @@
 **一眼看出哪条推文正在起飞,哪个账号值得关注。**
 
 在 X(Twitter)的信息流里,为每条推文标出实时流速和 AI 腔指数,为每个账号标出粉丝量级与质量。<br>
-另附一套克制、可控的互关清理工具。全程只读页面已有数据,不额外请求任何接口。
+另附视频下载和一套克制、可控的互关清理工具。标签只读页面已有数据,不额外请求任何接口。
 
 <p>
   <img alt="Manifest V3" src="https://img.shields.io/badge/Manifest-V3-1d9bf0?style=flat-square">
-<img alt="Version" src="https://img.shields.io/badge/version-0.7.8-0f1419?style=flat-square">
-  <img alt="Permissions" src="https://img.shields.io/badge/permissions-storage%20only-00ba7c?style=flat-square">
+<img alt="Version" src="https://img.shields.io/badge/version-0.8.0-0f1419?style=flat-square">
+  <img alt="Permissions" src="https://img.shields.io/badge/permissions-storage%20%2B%20downloads-00ba7c?style=flat-square">
   <img alt="Network" src="https://img.shields.io/badge/extra%20requests-0-00ba7c?style=flat-square">
   <img alt="Build" src="https://img.shields.io/badge/build-none-8b98a5?style=flat-square">
   <img alt="License" src="https://img.shields.io/badge/license-MIT-f91880?style=flat-square">
@@ -115,7 +115,7 @@
 </tr>
 </table>
 
-弹窗分为「标签」「主题」「互关清理」「通用」四个页签,所有改动即时生效,无需刷新页面。
+弹窗分为「标签」「主题」「下载」「互关清理」「通用」五个页签,所有改动即时生效,无需刷新页面。
 
 「通用」页签可以设置:
 
@@ -190,6 +190,16 @@
 | 高互动 | 近期推文互动/浏览 ≥ 3% |
 | 低活跃 | 粉丝 ≥ 5,000,但互动/浏览 < 0.1% |
 
+### 视频下载
+
+- **时间线按钮**:带视频或 GIF 的推文,操作栏末尾多一个下载图标,点一下下载最高清晰度的 mp4。多视频推文会逐个下载。可在弹窗「下载」页关闭。
+- **粘贴链接**:在弹窗「下载」页粘贴 `x.com/用户名/status/…` 链接(当前标签页是推文详情页时会自动填入),列出各清晰度和码率,点哪个下哪个。本条没有视频时会取引用推文里的视频。
+- **数据来源**:优先用页面已加载的 GraphQL 数据,零额外请求;页面里没有这条推文时,后台请求 X 官方嵌入组件使用的公开接口 `cdn.syndication.twimg.com/tweet-result`,不带 Cookie。
+- 文件保存在浏览器下载目录的 `SnowX` 文件夹,命名为 `作者_推文ID_清晰度.mp4`。只保存 mp4 直链,不下载 m3u8 分段流。受保护、已删除或需要登录才能看的推文无法通过粘贴链接解析。
+
+> [!CAUTION]
+> 仅限个人保存与学习使用。视频版权归原作者所有,请遵守 X 服务条款和当地法律,不要转载或用于商业用途。
+
 ### 互关清理
 
 <p align="center">
@@ -210,9 +220,9 @@ Snow X Assistant 的设计前提是:**不让你的数据离开浏览器**。
 
 | | |
 |---|---|
-| 网络请求 | 不发起任何请求。数据来自 X 页面本身已经加载的 GraphQL 响应,以及页面上已渲染的数字和正文 |
+| 网络请求 | 标签功能不发起任何请求,数据来自 X 页面本身已经加载的 GraphQL 响应,以及页面上已渲染的数字和正文。唯一的例外是视频下载:页面里没有这条推文的数据时,向 `cdn.syndication.twimg.com` 请求一次推文的公开嵌入信息(不带 Cookie),以及从 `video.twimg.com` 下载你选中的视频 |
 | AI 检测 | 正文只在当前页面内用本地规则打分,不上传、不调用任何模型接口,结果仅缓存在内存中 |
-| 权限 | 只申请 `storage`。没有 `host_permissions`,没有后台脚本,无法访问其他网站 |
+| 权限 | `storage` 保存设置;`downloads` 保存视频;`host_permissions` 只有 `x.com`、`twitter.com`(弹窗向已打开的 X 页面查询缓存)和 `cdn.syndication.twimg.com`(解析粘贴的链接)。后台脚本只响应本扩展自己的消息,且只下载 `video.twimg.com` 上的地址 |
 | 存储 | `chrome.storage.local` 只保存你的设置和最近一小时的取关时间戳(用于每小时上限),不记录浏览历史、不保存账号数据 |
 | 第三方 | 无统计、无遥测、无远程配置、无 CDN 依赖 |
 | 代码 | 无构建、无压缩,你加载的就是仓库里的源码,可逐行审阅 |
@@ -234,7 +244,8 @@ flowchart LR
 
 ```
 snow-x-assistant
-├── manifest.json     # MV3 清单,仅 storage 权限
+├── manifest.json     # MV3 清单,storage + downloads 权限
+├── background.js     # 后台:解析粘贴的推文链接、调用 chrome.downloads 保存视频
 ├── inject.js         # 页面主世界:复制 X 自身的 GraphQL 响应
 ├── content.js        # 内容脚本:缓存数据、定位推文、挂载标签与悬停卡
 ├── content.css       # 八套主题与悬停卡样式
@@ -303,7 +314,7 @@ node --test tests/
 
 提交改动前请确保:
 
-- 不引入新的网络请求或权限;
+- 除视频下载已有的嵌入接口外,不引入新的网络请求或权限;
 - 新的解析逻辑以纯函数形式放进 `lib/parse.js`,并补充对应测试;
 - 不修改 X 的原始请求与响应。
 

@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "Snow X Assistant",
-  "version": "0.7.8",
-  "description": "在 X 上用统一标签显示粉丝数、质量标签、单条推文流速和 AI 文本检测,并提供可独立开关的互关清理。本地运行,不额外请求 X API。",
+  "version": "0.8.0",
+  "description": "在 X 上用统一标签显示粉丝数、质量标签、单条推文流速和 AI 文本检测,支持下载推文视频,并提供可独立开关的互关清理。标签只读页面已加载的数据。",
   "minimum_chrome_version": "111",
   "icons": {
     "16": "icons/icon16.png",
@@ -11,8 +11,17 @@
     "128": "icons/icon128.png"
   },
   "permissions": [
-    "storage"
+    "storage",
+    "downloads"
   ],
+  "host_permissions": [
+    "https://x.com/*",
+    "https://twitter.com/*",
+    "https://cdn.syndication.twimg.com/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
   "action": {
     "default_title": "Snow X Assistant",
     "default_popup": "popup.html",

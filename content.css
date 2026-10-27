@@ -579,3 +579,22 @@ html[data-sxa-theme="dark"] .sxa-badge[data-sxa-skin="neon"] .sxa-ai[data-lv="2"
 /* AI 概率常驻:低于 40% 或正文太短时淡化,不抢眼 */
 .sxa-badge[data-sxa-skin] .sxa-ai[data-lv="0"] { opacity: 0.55; filter: grayscale(0.6); box-shadow: none; }
 .sxa-badge[data-sxa-skin] .sxa-ai[data-short="1"] { opacity: 0.4; }
+
+/* 时间线视频下载按钮:尺寸与 X 操作栏图标一致(34px),不改变推文高度 */
+.sxa-dl-wrap { display: flex; align-items: center; justify-content: flex-start; flex: 0 0 auto; }
+.sxa-dl {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 34px; height: 34px; margin: 0; padding: 0; border: 0; border-radius: 999px;
+  color: #536471; background: transparent; cursor: pointer; transition: color 0.15s, background-color 0.15s;
+}
+html[data-sxa-theme="dark"] .sxa-dl { color: #71767b; }
+.sxa-dl svg { width: 18.75px; height: 18.75px; fill: currentColor; }
+.sxa-dl:hover, .sxa-dl:focus-visible { color: #1d9bf0; background: rgba(29, 155, 240, 0.1); outline: none; }
+.sxa-dl[data-state="busy"] { color: #1d9bf0; cursor: progress; }
+.sxa-dl[data-state="busy"] svg { animation: sxa-dl-pulse 0.9s ease-in-out infinite; }
+.sxa-dl[data-state="done"] { color: var(--sxa-calm); }
+.sxa-dl[data-state="err"] { color: var(--sxa-hot); }
+@keyframes sxa-dl-pulse { 0%, 100% { transform: translateY(-2px); opacity: 1; } 50% { transform: translateY(2px); opacity: 0.55; } }
+@media (prefers-reduced-motion: reduce) {
+  .sxa-dl[data-state="busy"] svg { animation: none; opacity: 0.6; }
+}
