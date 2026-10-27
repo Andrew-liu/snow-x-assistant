@@ -10,7 +10,7 @@
 - 摘要：自动取自 `manifest.json` 的 `description`，限 132 字符，当前已符合
 - 官网：https://github.com/Andrew-liu/snow-x-assistant
 - 支持网址：https://github.com/Andrew-liu/snow-x-assistant/issues
-- 隐私政策网址：https://andrew-liu.github.io/snow-x-assistant/privacy.html
+- 隐私政策网址：https://blog.dinosaurliu.com/snow-x-assistant/privacy.html
 
 ## 2. 详细说明（中文）
 
