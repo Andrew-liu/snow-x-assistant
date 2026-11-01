@@ -11,7 +11,7 @@
 
 <p>
   <img alt="Manifest V3" src="https://img.shields.io/badge/Manifest-V3-1d9bf0?style=flat-square">
-<img alt="Version" src="https://img.shields.io/badge/version-0.8.0-0f1419?style=flat-square">
+<img alt="Version" src="https://img.shields.io/badge/version-0.8.1-0f1419?style=flat-square">
   <img alt="Permissions" src="https://img.shields.io/badge/permissions-storage%20%2B%20downloads-00ba7c?style=flat-square">
   <img alt="Network" src="https://img.shields.io/badge/extra%20requests-0-00ba7c?style=flat-square">
   <img alt="Build" src="https://img.shields.io/badge/build-none-8b98a5?style=flat-square">
@@ -163,12 +163,12 @@
 
 「不是……而是……」这类句式偶尔用一次是正常修辞,只命中一次时按半分计,反复使用才全额累加。中文里出现笑死、卧槽、属于是、句末「吧/啊」等口语信号时,整体分数打七折。分数曲线按推文的长度校准,一两处典型套路就能到 50% 左右,较长的文本会相应放宽。
 
-开关默认关闭,需在弹窗「标签」页手动打开。打开后,每条有正文的推文都会在标签行显示 `AI xx%`:
+开关默认关闭,需在弹窗「标签」页手动打开。打开后,分数大于 0% 的推文会在标签行显示 `AI xx%`(0% 或正文太短时自动隐藏):
 
 | AI 概率 | 显示 |
 |---|---|
-| 正文太短(有效长度不足 10) | `AI –`,淡化,不判断 |
-| 0% 到 39% | 「不明显」,淡化 |
+| 0% 或正文太短(有效长度不足 10) | 自动隐藏,不显示标签 |
+| 1% 到 39% | 「不明显」,淡化 |
 | 40% 到 74% | 「疑似 AI」,浅紫描边 |
 | 75% 及以上 | 「很像 AI」,实心紫色并带光晕 |
 

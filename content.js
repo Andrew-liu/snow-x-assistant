@@ -97,11 +97,18 @@
       if (old) { u.followedBy = u.followedBy || old.followedBy; u.iFollow = u.iFollow || old.iFollow; }
       users.set(u.handle, u);
     }
+    const now = Date.now();
     for (const t of ts) {
+      t.obsAt = now;
       const old = tweets.peek(t.id);
       if (old && !t.text && old.text) t.text = old.text; // 有的接口不带正文,保留之前拿到的
       if (old && !t.videos.length && old.videos && old.videos.length) t.videos = old.videos;
       if (old && !t.quotedId && old.quotedId) t.quotedId = old.quotedId;
+      if (old && old.views > 0) {
+        const base = old.prevObs || { views: old.views, at: old.obsAt || now };
+        if (now - base.at >= 120e3 && t.views >= base.views) t.prevObs = base;
+        else if (old.prevObs) t.prevObs = old.prevObs;
+      }
       if (!old || t.views >= old.views) tweets.set(t.id, t);
       else tweets.get(t.id);
       stats.add(t);
@@ -270,7 +277,7 @@
     const hasVel = settings.showVelocity && tweet;
     let ai = null;
     if (settings.showAiText && id) ai = aiFor(id, (tweet && tweet.text) || domText(article, un));
-    const hasAi = !!ai;
+    const hasAi = !!(ai && !ai.short && ai.score > 0);
     if (!hasUser && !hasVel && !hasAi) { removePlaced(un); return null; }
 
     const sig = sigOf(handle, tweet, false, ai);
@@ -655,7 +662,7 @@
       read.append(num, E("span", "sxa-pill lv", window.SnowXBadge.levelName(lv)));
       sec.append(read);
 
-      const score = P.viralScore(t, now);
+      const score = P.viralScore(t, now, u ? u.followers : undefined);
       const bar = E("div", "sxa-score");
       const track = E("i", "sxa-track");
       const fill = E("i");
@@ -678,7 +685,7 @@
     }
 
     const air = tweetId && settings.showAiText ? aiCache.peek(tweetId) : null;
-    if (air && air.res) box.append(aiSection(air.res));
+    if (air && air.res && air.res.score > 0) box.append(aiSection(air.res));
   }
 
   // AI 检测明细:总分、档位、命中最多的 4 条规则和命中片段

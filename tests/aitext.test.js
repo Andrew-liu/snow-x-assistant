@@ -153,3 +153,42 @@ test("推文长度的 AI 腔能过默认阈值 50,正常推文不过", () => {
   ];
   for (const t of human) { const r = A.detect(t); assert.ok(!r || r.score < 30, `${r && r.score}: ${t.slice(0, 20)}`); }
 });
+
+test("三段式回复组合加分:先夸/附和 + 转折/关键 + 展望/反问", () => {
+  const zh = A.detect("这个观点很有意思！不过在实际落地的过程中，真正的壁垒还是在于生态。未来值得持续关注，你怎么看？");
+  assert.ok(zh.hits.some((h) => h.id === "zh.reply_tpl"), zh.hits.map((h) => h.id).join(","));
+  assert.ok(zh.score >= A.STRONG, `score=${zh.score}`);
+  // 拼图 B:套话式经历(persona) + 补充个角度(angle) + 扩展反问(好奇你是怎么…的？)
+  const zh2 = A.detect("结合我们团队自己的实践来看，深有体会！另外补充一个角度，如果再往深处想，好奇你平时是怎么平衡成本的？");
+  const ids2 = zh2.hits.map((h) => h.id);
+  for (const id of ["zh.persona", "zh.angle", "zh.ask", "zh.reply_tpl"]) assert.ok(ids2.includes(id), `${id} not in ${ids2}`);
+  assert.ok(zh2.score >= 65, `score=${zh2.score}`);
+  const en = A.detect("Great point! To add another angle, it's not just about speed, but reliability. Curious how you handle this in prod?");
+  const enIds = en.hits.map((h) => h.id);
+  for (const id of ["en.praise", "en.angle", "en.ask", "en.reply_tpl"]) assert.ok(enIds.includes(id), `${id} not in ${enIds}`);
+  assert.ok(en.score >= 65, `score=${en.score}`);
+});
+
+test("防口头禅伪装:段首贴“笑死/ngl”但正文是工整 AI 套路时不享口语打折", () => {
+  const maskedZh = A.detect("笑死，这个观点很有意思！这背后反映的其实是技术门槛正在不断降低，未来值得持续关注。");
+  assert.ok(maskedZh.hits.some((h) => h.id === "zh.casual_mask"), maskedZh.hits.map((h) => h.id).join(","));
+  assert.ok(maskedZh.score >= 60, `score=${maskedZh.score}`);
+  const maskedEn = A.detect("ngl, Great point! This is a fascinating perspective on the evolving landscape of AI. What do you think?");
+  assert.ok(maskedEn.hits.some((h) => h.id === "en.casual_mask"), maskedEn.hits.map((h) => h.id).join(","));
+  assert.ok(maskedEn.score >= 60, `score=${maskedEn.score}`);
+  // 真人带口语的正常吐槽仍然低分
+  const realCasual = A.detect("笑死，我昨天试了一下这个模型，跑个简单的脚本都能把显存撑爆，实在太离谱了哈哈哈");
+  assert.ok(!realCasual.hits.some((h) => h.id === "zh.casual_mask"));
+  assert.ok(realCasual.score < 20, `score=${realCasual.score}`);
+});
+
+test("句子均匀度检测与零宽字符/全角 NFKC 归一化", () => {
+  // 4 句字数几乎一模一样的排比工整句(每句 16 字),触发 x.uniform
+  const uniform = A.detect("技术正在重塑每一个传统行业的边界。数据已经成为新时代核心的生产要素。算法持续驱动着商业模式的全面升级。生态终将决定企业长远发展的天花板。");
+  assert.ok(uniform.hits.some((h) => h.id === "x.uniform"), uniform.hits.map((h) => h.id).join(","));
+  // 插入零宽空格(\u200B)或全角字母后仍能正常识别套话
+  const obfuscated = A.detect("在当今快速发展的时代，值得\u200B注意\u200B的是，ＡＩ不仅仅是一种工具，更是核心力量。总而言之，未来已来。");
+  assert.ok(obfuscated.hits.some((h) => h.id === "zh.emphasis"));
+  assert.ok(obfuscated.score >= 60, `score=${obfuscated.score}`);
+});
+

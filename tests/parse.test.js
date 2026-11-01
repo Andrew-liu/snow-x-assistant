@@ -41,17 +41,24 @@ test("extract 从嵌套 GraphQL 里取出用户和推文", () => {
   assert.equal(tweets[0].bookmarks, 30);
 });
 
-test("流速 = 浏览 / 小时,按 1k / 5k / 1w 分四档,后三档带火箭", () => {
+test("流速:2h 内用平均速度,超过 2h 按 8h 半衰期衰减模型算此刻瞬时流速,有前次观测用实际差分", () => {
   const cfg = P.mergeSettings();
-  const t = { views: 50000, likes: 100, retweets: 20, replies: 10, quotes: 0, bookmarks: 30, createdAt: new Date(NOW - 5 * HOUR).toISOString() };
-  assert.equal(Math.round(P.velocityOf(t, NOW)), 10000);
+  // 2 小时内:20000 浏览 / 2h = 10000/h
+  const fresh = { views: 20000, likes: 100, retweets: 20, replies: 10, quotes: 0, bookmarks: 30, createdAt: new Date(NOW - 2 * HOUR).toISOString() };
+  assert.equal(Math.round(P.velocityOf(fresh, NOW)), 10000);
+  // 5 小时老帖:50000 浏览按 8h 半衰期衰减,此刻瞬时流速低于全程平均 10000(约 7990/h)
+  const aging = { views: 50000, likes: 100, retweets: 20, replies: 10, quotes: 0, bookmarks: 30, createdAt: new Date(NOW - 5 * HOUR).toISOString() };
+  assert.equal(Math.round(P.velocityOf(aging, NOW)), 7990);
+  // 有间隔 >= 2 分钟的前次观测时,用两次观测的实际增量差分:(53000 - 50000) / 0.5h = 6000/h
+  const withObs = { ...aging, views: 53000, prevObs: { views: 50000, at: NOW - 0.5 * HOUR } };
+  assert.equal(Math.round(P.velocityOf(withObs, NOW)), 6000);
   assert.equal(P.velocityLevel(999, cfg), 0);
   assert.equal(P.velocityLevel(1000, cfg), 1);
   assert.equal(P.velocityLevel(4999, cfg), 1);
   assert.equal(P.velocityLevel(5000, cfg), 2);
   assert.equal(P.velocityLevel(9999, cfg), 2);
   assert.equal(P.velocityLevel(10000, cfg), 3);
-  const tag = P.velocityTag(t, NOW, cfg);
+  const tag = P.velocityTag(fresh, NOW, cfg);
   assert.equal(tag.cls, "v3");
   assert.equal(tag.text, "\u{1F680} 1万/h");
   const calm = P.velocityTag({ views: 500, createdAt: new Date(NOW - HOUR).toISOString() }, NOW, cfg);
@@ -65,9 +72,21 @@ test("刚发的推文按至少 0.1 小时算,无浏览量不出流速", () => {
   assert.equal(P.velocityOf({ views: 10, createdAt: "bad" }, NOW), null);
 });
 
-test("爆款分在 0-100 之间", () => {
+test("爆款分与 X 推荐指标:加权互动率(回复/引用权重高于点赞)、预计 24h 浏览与破圈系数", () => {
   const t = { views: 1e6, likes: 1e5, retweets: 1e5, replies: 1e5, quotes: 0, bookmarks: 1e5, createdAt: new Date(NOW - HOUR).toISOString() };
   assert.equal(P.viralScore(t, NOW), 100);
+  assert.equal(P.viralScore(t, NOW, 5000), 100);
+  // 同样 100 次互动,100 条回复(权重 5)比 100 个赞(权重 0.66)的加权互动率和爆款分高得多
+  const base = { views: 10000, likes: 0, retweets: 0, replies: 0, quotes: 0, bookmarks: 0, createdAt: new Date(NOW - 2 * HOUR).toISOString() };
+  const onlyLikes = { ...base, likes: 100 };
+  const onlyReplies = { ...base, replies: 100 };
+  assert.ok(P.weightedEngagementOf(onlyReplies) > P.weightedEngagementOf(onlyLikes) * 7);
+  assert.ok(P.viralScore(onlyReplies, NOW, 2000) > P.viralScore(onlyLikes, NOW, 2000));
+  // 破圈系数:同样浏览与互动,小号(1000 粉)比大号(50 万粉)破圈分更高
+  assert.ok(P.viralScore(onlyReplies, NOW, 1000) > P.viralScore(onlyReplies, NOW, 500000));
+  // 预计 24h 浏览:2 小时的新帖高于当前浏览,满 24 小时等于当前浏览
+  assert.ok(P.projectedViews24h(base, NOW) > base.views);
+  assert.equal(P.projectedViews24h({ ...base, createdAt: new Date(NOW - 30 * HOUR).toISOString() }, NOW), base.views);
 });
 
 test("质量标签:互关、大V、疑似互粉号", () => {
