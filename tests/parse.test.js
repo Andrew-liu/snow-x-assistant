@@ -244,3 +244,91 @@ test("作者统计:每作者只留最近 N 条,作者超限整体淘汰且不残
   s.add(tw("x", "carol", 100));    // 被淘汰后再出现,从零开始计,不会翻倍
   assert.equal(s.get("carol").views, 100);
 });
+
+test("内容方向:从简介与刷到过的推文累计判断,忽略链接/@账号名/转推,支持自定义词典与兜底方向", () => {
+  // readUser 提取简介
+  const u = P.extract(user("coder", { profile_bio: { description: "Full-stack developer, Vibe Coding with Cursor" } })).users[0];
+  assert.equal(u.bio, "Full-stack developer, Vibe Coding with Cursor");
+
+  // 简介命中 1 个词即够分(3 分)
+  const fromBio = P.pickDomains(u.bio, {}, "");
+  assert.equal(fromBio[0].key, "code");
+  assert.equal(fromBio[0].name, "AI编程");
+
+  // 简介无线索时,靠刷到过的推文累计(3 条命中的推文 = 3 分)
+  assert.deepEqual(P.pickDomains("今天天气不错", { agent: 2 }, ""), []);
+  const fromTweets = P.pickDomains("今天天气不错", { agent: 3 }, "");
+  assert.equal(fromTweets[0].key, "agent");
+  assert.equal(fromTweets[0].name, "智能体");
+
+  // 转推不计入作者方向,@账号名和链接里的词不误判
+  assert.deepEqual(P.tweetDomains("RT @someone: Cursor and Claude Code are great", ""), []);
+  assert.deepEqual(P.tweetDomains("Check out @t3dotcodes https://github.com/foo/bar", ""), []);
+  assert.ok(P.tweetDomains("在用 Cursor 写独立开发项目", "").includes("code"));
+
+  // 兜底方向(AI工具/成长/泛 AI)只在没有具体方向时才返回
+  const fallbackOnly = P.pickDomains("分享好用工具和效率工具教程", {}, "");
+  assert.equal(fallbackOnly[0].key, "tools");
+  const withSpecific = P.pickDomains("分享好用工具和效率工具教程,主业做 Midjourney 插画设计", {}, "");
+  assert.equal(withSpecific[0].key, "design");
+  assert.ok(!withSpecific.some((d) => d.key === "tools"));
+
+  // 自定义词典优先于内置方向
+  const custom = "电商=直播,带货,选品\n出海=跨境";
+  const pickedCustom = P.pickDomains("做抖音直播带货和选品", {}, custom);
+  assert.equal(pickedCustom[0].key, "custom0");
+  assert.equal(pickedCustom[0].name, "电商");
+
+  // tags 按优先级把内容方向排在关系标签后、大V前,且受 tags.domain 开关控制
+  const big = { followers: 20000, following: 100, followedBy: true, iFollow: true, createdAt: null };
+  const tList = P.tags(big, null, NOW, P.mergeSettings(), { domain: fromBio[0] });
+  assert.deepEqual(tList.map((t) => t.key), ["relation", "domain", "bigV"]);
+  assert.equal(tList[1].dom, "code");
+  assert.equal(tList[1].cls, "dom");
+  const offCfg = P.mergeSettings({ tags: { domain: false } });
+  assert.deepEqual(P.tags(big, null, NOW, offCfg, { domain: fromBio[0] }).map((t) => t.key), ["relation", "bigV"]);
+});
+
+test("高级搜索筛选:buildSearchQuery 组装各分组过滤规则与时间冲突提示", () => {
+  assert.equal(P.mergeSettings().showSearchFilter, true);
+  assert.equal(P.mergeSettings({ showSearchFilter: false }).showSearchFilter, false);
+
+  const r1 = P.buildSearchQuery({
+    keywords: "AI agent",
+    exactPhrase: "claude code",
+    orTerms: "cursor，windsurf, devin",
+    exclude: "giveaway, air drop",
+    hashtag: "#buildinpublic",
+    url: "github.com",
+    lang: "zh",
+    from: "@xueyu1125",
+    to: "elonmusk",
+    filterVerified: "on",
+    filterFollows: "on",
+    near: "San Francisco",
+    within: { value: 15, unit: "km" },
+    since: "2026-01-01",
+    until: "2026-10-01",
+    minFaves: 100,
+    minRetweets: 20,
+    minReplies: 5,
+    radioMedia: "videos",
+    filterLinks: "on",
+    filterQuote: "on",
+    filterReplies: "on",
+  });
+  assert.equal(
+    r1.query,
+    'AI agent "claude code" (cursor OR windsurf OR devin) -giveaway -"air drop" #buildinpublic from:xueyu1125 to:elonmusk filter:verified filter:follows since:2026-01-01 until:2026-10-01 min_faves:100 min_retweets:20 min_replies:5 filter:videos filter:links filter:quote -filter:replies lang:zh near:"San Francisco" within:15km url:github.com',
+  );
+  assert.deepEqual(r1.warnings, []);
+
+  // within_time 优先于 since/until 并返回冲突提示
+  const r2 = P.buildSearchQuery({
+    keywords: "llm",
+    withinTime: { value: 7, unit: "d" },
+    since: "2026-01-01",
+  });
+  assert.equal(r2.query, "llm within_time:7d");
+  assert.deepEqual(r2.warnings, ["sf.conflictTime"]);
+});

@@ -18,13 +18,16 @@
 Snow X Assistant 是一个 X（Twitter）浏览助手，帮你在刷 X 时一眼看清账号和推文的质量。
 
 【账号与推文标签】
-在推文作者名字旁边显示统一的标签：粉丝数、关注/粉丝比、互关、大V、高互动、低活跃等，可选显示疑似互粉号、新号、老号。每项都能单独开关，有 8 套标签主题可选。
+在推文作者名字旁边显示统一的标签：粉丝数、关注/粉丝比、内容方向（AI编程、智能体、AI视频、出海变现等，支持自定义词典）、互关、未回关、大V、高互动、低活跃等，可选显示疑似互粉号、新号、老号。每项都能单独开关，有 8 套标签主题可选。
 
 【推文流速】
 显示单条推文每小时的浏览增长，快速发现正在变热的内容。
 
 【AI 文本概率】
 在本地用中英文规则估算推文正文像 AI 写的程度，以百分比显示。纯规则打分，不调用任何 AI 接口，可随时关闭。
+
+【高级搜索筛选】
+在 X 搜索框旁提供「高级搜索」可视化面板（或按 Ctrl+Shift+F），无需手写语法即可组合精确短语、OR、排除词、来自用户、时间范围、最少互动与媒体类型等过滤规则，支持本地保存搜索历史与收藏。
 
 【视频下载】
 在带视频的推文操作栏加一个下载按钮，也可以在弹窗里粘贴推文链接，选择清晰度后保存 mp4。仅限个人保存与学习使用，请尊重原作者版权并遵守 X 服务条款。
@@ -47,13 +50,16 @@ Snow X Assistant 是一个 X（Twitter）浏览助手，帮你在刷 X 时一眼
 Snow X Assistant helps you judge the quality of accounts and tweets at a glance while browsing X (Twitter).
 
 ACCOUNT & TWEET TAGS
-Shows unified tags next to author names: followers, following/follower ratio, mutual, big account, high engagement, low activity, plus optional tags for likely follow-farm, new and old accounts. Every tag can be toggled, with 8 tag themes.
+Shows unified tags next to author names: followers, following/follower ratio, content topic (AI Coding, AI Agents, AI Video, Indie Biz, etc., with custom dictionary support), mutual, no follow-back, big account, high engagement, low activity, plus optional tags for likely follow-farm, new and old accounts. Every tag can be toggled, with 8 tag themes.
 
 VIEW VELOCITY
 Shows how fast a tweet is gaining views per hour, so you can spot posts that are taking off.
 
 AI-TEXT LIKELIHOOD
 Estimates locally, with Chinese and English rules, how AI-written a tweet's text looks, shown as a percentage. Rule-based only, no AI service is called, and it can be turned off.
+
+ADVANCED SEARCH FILTERS
+Adds an “Advanced” button next to the X search bar (or press Ctrl+Shift+F) to visually combine search operators (exact phrase, OR, exclude, from user, time range, min likes/retweets/replies, media type) with local search history and saved favorites.
 
 VIDEO DOWNLOAD
 Adds a download button to tweets with video, or paste a tweet link in the popup and pick a quality to save the mp4. For personal use only. Please respect creators' copyright and the X Terms of Service.

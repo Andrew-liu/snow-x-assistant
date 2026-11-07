@@ -6,6 +6,7 @@
   const I = window.SnowXI18n;
   const T = (k, v) => I.t(k, v);
   const LEGACY_HIST_KEY = "sxa_hist"; // 0.2.x 的粉丝记录,功能已移除,启动时清掉
+  const DOM_KEY = "sxa_dom";          // 累计刷到过的各博主推文内容方向得分
   const SOURCE = "snow-x-assistant";
   const MAX_BODY = 30 * 1024 * 1024;
   const USERS_MAX = 5000;
@@ -17,9 +18,14 @@
   const users = new P.LruMap(USERS_MAX);      // handle -> user
   const tweets = new P.LruMap(TWEETS_MAX);    // tweetId -> tweet(取浏览数最大的一次)
   const stats = P.createAuthorStats(AUTHORS_MAX, TWEETS_PER_AUTHOR); // 作者互动统计
+  const domScores = new Map();                // handle -> { n: 命中总数, ts: 最后更新时间, s: { 方向key: 命中的推文条数 } }
+  const domTweetSeen = new P.LruMap(TWEETS_MAX); // 已计入内容方向的推文 ID,避免重复累计
+  let domDirty = false;
+  let saveTimer = null;
   const AI = window.SnowXAiText;
   const aiCache = new P.LruMap(TWEETS_MAX);   // tweetId -> { key, res },正文不变就不重算
   let settings = null;
+  let lastCustom = "";
   let settingsVer = 0;
   let msgCount = 0;
   const pending = [];
@@ -35,14 +41,37 @@
     added.push(document.documentElement); // 脚本晚于页面注入时,补扫一次已有节点
     C.loadSettings((s) => {
       settings = s;
+      lastCustom = s.customDomains || "";
       syncLang();
       syncLayout();
       applyDebug();
       flush();
     });
-    if (C.storage) { try { C.storage.remove(LEGACY_HIST_KEY); } catch (_) {} }
+    if (C.storage) {
+      try { C.storage.remove(LEGACY_HIST_KEY); } catch (_) {}
+      try {
+        C.storage.get(DOM_KEY, (r) => {
+          const saved = (r && r[DOM_KEY]) || {};
+          for (const h in saved) {
+            const row = saved[h];
+            if (!Array.isArray(row) || !row[1] || typeof row[1] !== "object") continue;
+            const cur = domScores.get(h);
+            const s = Object.assign({}, row[1]);
+            if (cur && cur.s) {
+              for (const k in cur.s) s[k] = (s[k] || 0) + cur.s[k];
+            }
+            const n = Object.values(s).reduce((a, b) => a + b, 0);
+            domScores.set(h, { ts: Math.max(Number(row[0]) || 0, cur ? cur.ts : 0), s, n });
+          }
+          if (settings) { fullPass = true; scheduleRender(); }
+        });
+      } catch (_) {}
+    }
     C.onSettingsChange((s) => {
+      const prevCustom = lastCustom;
       settings = s;
+      lastCustom = s.customDomains || "";
+      if (lastCustom !== prevCustom) rescoreCachedCustomDomains();
       settingsVer++;
       fullPass = true;
       if (!s.showDownload) document.querySelectorAll(".sxa-dl-wrap").forEach((b) => b.remove());
@@ -87,14 +116,76 @@
     scheduleRender();
   });
 
+  function doSaveDom() {
+    saveTimer = null;
+    if (!domDirty || !C.storage) return;
+    domDirty = false;
+    const rows = [...domScores.entries()].sort((a, b) => b[1].ts - a[1].ts).slice(0, AUTHORS_MAX);
+    const obj = {};
+    for (const [h, v] of rows) obj[h] = [v.ts, v.s];
+    try { C.storage.set({ [DOM_KEY]: obj }); } catch (_) {}
+  }
+  function scheduleSaveDom() {
+    if (!C.storage || saveTimer) return;
+    saveTimer = setTimeout(doSaveDom, 20000);
+  }
+  function flushSaveDom() {
+    if (saveTimer) { clearTimeout(saveTimer); doSaveDom(); }
+  }
+  document.addEventListener("visibilitychange", () => { if (document.hidden) flushSaveDom(); });
+  window.addEventListener("pagehide", flushSaveDom);
+
+  function recordTweetDomains(id, author, text, now) {
+    if (!id || !author || !text || domTweetSeen.has(id)) return;
+    domTweetSeen.set(id, 1);
+    const keys = P.tweetDomains(text, settings ? settings.customDomains : "");
+    if (!keys.length) return;
+    const d = domScores.get(author) || { n: 0, ts: 0, s: {} };
+    for (const k of keys) d.s[k] = (d.s[k] || 0) + 1;
+    d.n += keys.length;
+    d.ts = now || Date.now();
+    domScores.set(author, d);
+    domDirty = true;
+    scheduleSaveDom();
+  }
+
+  // 用户修改自定义方向词典后,用当前页面已缓存的推文重算自定义方向得分,无需刷新即可生效
+  function rescoreCachedCustomDomains() {
+    for (const [, d] of domScores) {
+      for (const k of Object.keys(d.s)) {
+        if (k.startsWith("custom")) delete d.s[k];
+      }
+      d.n = Object.values(d.s).reduce((a, b) => a + b, 0);
+    }
+    if (!settings || !settings.customDomains) return;
+    const now = Date.now();
+    for (const tid of tweets.keys()) {
+      const t = tweets.peek(tid);
+      if (!t || !t.author || !t.text) continue;
+      const keys = P.tweetDomains(t.text, settings.customDomains).filter((k) => k.startsWith("custom"));
+      if (!keys.length) continue;
+      const d = domScores.get(t.author) || { n: 0, ts: 0, s: {} };
+      for (const k of keys) d.s[k] = (d.s[k] || 0) + 1;
+      d.n += keys.length;
+      d.ts = now;
+      domScores.set(t.author, d);
+    }
+    domDirty = true;
+    scheduleSaveDom();
+  }
+
   function handleMessage(body) {
     let json;
     try { json = JSON.parse(body); } catch (_) { return; }
     const { users: us, tweets: ts } = P.extract(json);
     for (const u of us) {
       const old = users.peek(u.handle);
-      // 有的接口不带关系字段,别把已知的关注关系覆盖成 false
-      if (old) { u.followedBy = u.followedBy || old.followedBy; u.iFollow = u.iFollow || old.iFollow; }
+      // 有的接口不带关系字段或简介,别把已知数据覆盖掉
+      if (old) {
+        u.followedBy = u.followedBy || old.followedBy;
+        u.iFollow = u.iFollow || old.iFollow;
+        if (!u.bio && old.bio) u.bio = old.bio;
+      }
       users.set(u.handle, u);
     }
     const now = Date.now();
@@ -112,6 +203,7 @@
       if (!old || t.views >= old.views) tweets.set(t.id, t);
       else tweets.get(t.id);
       stats.add(t);
+      if (t.text) recordTweetDomains(t.id, t.author, t.text, now);
     }
     if (us.length || ts.length) fullPass = true;
   }
@@ -206,8 +298,9 @@
   // ---------- 标签构建 ----------
   function buildBadge(handle, tweet, compact, ai, tweetId) {
     const u = handle ? users.get(handle) : null;
+    const d = handle ? domScores.get(handle) : null;
     const built = window.SnowXBadge.build({
-      user: u, stat: handle ? stats.get(handle) : null, tweet, ai, settings, now: Date.now(), compact,
+      user: u, stat: handle ? stats.get(handle) : null, domScores: d ? d.s : null, tweet, ai, settings, now: Date.now(), compact,
     });
     if (!built) return null;
     const wrap = built.wrap;
@@ -224,9 +317,10 @@
   function sigOf(handle, tweet, compact, ai) {
     const u = handle ? users.get(handle) : null;
     const s = handle ? stats.get(handle) : null;
+    const d = handle ? domScores.get(handle) : null;
     const vt = tweet && settings.showVelocity ? P.velocityTag(tweet, Date.now(), settings) : null;
     return [
-      u ? u.followers : "-", s ? s.views : 0, u ? u.followedBy : "", u ? u.iFollow : "",
+      u ? u.followers : "-", s ? s.views : 0, u ? u.followedBy : "", u ? u.iFollow : "", u && u.bio ? u.bio.length : 0, d ? d.n : 0,
       tweet ? tweet.id : "", tweet ? tweet.views : "", vt ? vt.text : "", ai ? (ai.short ? "s" : ai.score) : "", settingsVer, compact ? 1 : 0,
     ].join("|");
   }
@@ -276,7 +370,9 @@
     const hasUser = settings.tagsEnabled && handle && users.has(handle);
     const hasVel = settings.showVelocity && tweet;
     let ai = null;
-    if (settings.showAiText && id) ai = aiFor(id, (tweet && tweet.text) || domText(article, un));
+    const text = (tweet && tweet.text) || ((settings.showAiText || (settings.tagsEnabled && settings.tags.domain)) ? domText(article, un) : null);
+    if (id && handle && text && !domTweetSeen.has(id)) recordTweetDomains(id, handle, text, Date.now());
+    if (settings.showAiText && id) ai = aiFor(id, text);
     const hasAi = !!(ai && !ai.short && ai.score > 0);
     if (!hasUser && !hasVel && !hasAi) { removePlaced(un); return null; }
 
@@ -334,7 +430,7 @@
   const HEAD_SEL = '[data-testid="User-Name"]';
   const CELL_SEL = '[data-testid="UserCell"]';
   const TARGET_SEL = `${HEAD_SEL}, ${CELL_SEL}`;
-  const OWN_SEL = ".sxa-badge, #sxa-tip, #sxa-hud, .sxa-mc-bar, .sxa-dl-wrap";
+  const OWN_SEL = ".sxa-badge, #sxa-tip, #sxa-hud, .sxa-mc-bar, .sxa-dl-wrap, #sxa-sf-btn, #sxa-sf-panel";
   const VIDEO_SEL = '[data-testid="videoPlayer"], [data-testid="videoComponent"], video';
   const added = [];            // 待检查的新增节点
   const tracked = new Set();   // 已交给 IntersectionObserver 的元素
@@ -465,12 +561,13 @@
   }
 
   const SVG_NS = "http://www.w3.org/2000/svg";
+  // 与 X 原生「分享(上传)」图标同款圆角托盘与线宽,仅将箭头方向反转为向下
   function dlIcon() {
     const svg = document.createElementNS(SVG_NS, "svg");
     svg.setAttribute("viewBox", "0 0 24 24");
     svg.setAttribute("aria-hidden", "true");
     const path = document.createElementNS(SVG_NS, "path");
-    path.setAttribute("d", "M11 3h2v9.59l3.3-3.3 1.4 1.42L12 16.4l-5.7-5.7 1.4-1.42 3.3 3.3V3zM4 15h2v4h12v-4h2v6H4v-6z");
+    path.setAttribute("d", "M12 16 6.3 10.3l1.42-1.42L11 12.18V2.59h2v9.59l3.3-3.3 1.41 1.42L12 16zM21 15l-.02 3.51c0 1.38-1.12 2.49-2.5 2.49H5.5C4.11 21 3 19.88 3 18.5V15h2v3.5c0 .28.22.5.5.5h12.98c.28 0 .5-.22.5-.5L19 15h2z");
     svg.append(path);
     return svg;
   }
@@ -640,6 +737,15 @@
       box.append(grid);
 
       const list = E("div", "sxa-kvs");
+      if (settings.tags && settings.tags.domain) {
+        const d = domScores.get(handle);
+        const doms = P.pickDomains(u.bio, d ? d.s : null, settings.customDomains).slice(0, 2);
+        list.append(
+          doms.length
+            ? kv(T("tip.domain"), doms.map((x) => window.SnowXBadge.domainName(x)).join(" · "))
+            : kv(T("tip.domain"), T("tip.domainUnknown"), "dim"),
+        );
+      }
       const er = P.engagementOf(stats.get(handle));
       list.append(er === null ? kv(T("tip.er"), T("tip.lowSample"), "dim") : kv(T("tip.er"), `${(er * 100).toFixed(2)}%`));
       if (u.tweets !== null && u.tweets !== undefined) list.append(kv(T("tip.tweets"), Number(u.tweets).toLocaleString()));

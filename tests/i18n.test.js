@@ -71,6 +71,10 @@ test("质量标签带上用于翻译的 tid", () => {
   assert.equal(P.tags({ ...base, followedBy: true, iFollow: true }, null, now)[0].tid, "mutual");
   assert.equal(P.tags({ ...base, followedBy: true, iFollow: false }, null, now)[0].tid, "followsYou");
   for (const k of Object.keys(P.DEFAULTS.tags)) assert.ok(I.DICT.en["tag." + k], k);
+  for (const d of P.DOMAINS) {
+    assert.ok(I.DICT.zh["dom." + d.key], "zh dom." + d.key);
+    assert.ok(I.DICT.en["dom." + d.key], "en dom." + d.key);
+  }
 });
 
 test("未回关:只标我关注了但对方没关注我的账号", () => {

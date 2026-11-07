@@ -87,8 +87,15 @@ h1 { margin: 0; font-size: 15px; font-weight: 700; letter-spacing: -0.01em; }
 }
 .chips input:checked + span { color: var(--sxa-ink); background: var(--sxa-wash); border-color: var(--sxa-mute); }
 .chips input[data-tag="relation"]:checked + span { color: var(--sxa-blue); }
+.chips input[data-tag="domain"]:checked + span { color: #4f46e5; }
+html[data-sxa-theme="dark"] .chips input[data-tag="domain"]:checked + span { color: #818cf8; }
 .chips input[data-tag="bigV"]:checked + span, .chips input[data-tag="engaged"]:checked + span { color: var(--sxa-calm); }
 .chips input[data-tag="farm"]:checked + span, .chips input[data-tag="newAcct"]:checked + span, .chips input[data-tag="lowActive"]:checked + span { color: var(--sxa-rise); }
+.dom-input {
+  width: 100%; padding: 6px 8px; border: 1px solid var(--sxa-line); border-radius: 8px; resize: vertical;
+  font: 12px/1.4 var(--sxa-sans); color: var(--sxa-ink); background: var(--sxa-wash);
+}
+.dom-input:focus { outline: 2px solid var(--sxa-blue); outline-offset: 0; border-color: transparent; }
 
 /* 分段选择 */
 .seg { display: flex; padding: 2px; border-radius: 999px; background: var(--sxa-wash); border: 1px solid var(--sxa-line); }

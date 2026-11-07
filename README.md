@@ -11,7 +11,7 @@
 
 <p>
   <img alt="Manifest V3" src="https://img.shields.io/badge/Manifest-V3-1d9bf0?style=flat-square">
-<img alt="Version" src="https://img.shields.io/badge/version-0.8.1-0f1419?style=flat-square">
+<img alt="Version" src="https://img.shields.io/badge/version-0.9.0-0f1419?style=flat-square">
   <img alt="Permissions" src="https://img.shields.io/badge/permissions-storage%20%2B%20downloads-00ba7c?style=flat-square">
   <img alt="Network" src="https://img.shields.io/badge/extra%20requests-0-00ba7c?style=flat-square">
   <img alt="Build" src="https://img.shields.io/badge/build-none-8b98a5?style=flat-square">
@@ -24,7 +24,8 @@
   <a href="#安装">安装</a> ·
   <a href="#隐私">隐私</a> ·
   <a href="#工作原理">工作原理</a> ·
-  <a href="#常见问题">常见问题</a>
+  <a href="#常见问题">常见问题</a> ·
+  <a href="#致谢">致谢</a>
 </p>
 
 <picture>
@@ -59,7 +60,7 @@
 
 ### 账号标签
 
-粉丝量级、关注/粉丝比（百分比）,以及互关、未回关、大V、新号、老号、高互动、低活跃、疑似互粉号八种质量标签,每一项都能单独开关。
+粉丝量级、关注/粉丝比（百分比）、**内容方向**（根据简介与刷到过的推文识别 AI编程、智能体、AI视频、出海变现等方向,支持自定义词典）,以及互关、未回关、大V、新号、老号、高互动、低活跃、疑似互粉号等质量标签,每一项都能单独开关。
 
 </td>
 <td width="25%" valign="top">
@@ -183,6 +184,7 @@
 |---|---|
 | 互关 / 关注了你 | 来自 X 返回的关系字段 |
 | 未回关 | 你关注了对方,但对方没有关注你。同样来自 X 已返回的关系字段,不额外请求;你没关注的账号不标 |
+| 内容方向 | 根据账号简介(命中 1 个词即够分)与你刷到过的推文(累计命中)自动识别:AI编程、智能体、AI视频、AI设计、大模型、出海变现、自媒体、投资、Web3、产品,以及兜底方向 AI工具、成长、AI。支持在弹窗按 `名称=词1,词2` 编写自定义方向词典(优先于内置方向),悬停卡会列出前两个方向 |
 | 大V | 粉丝 ≥ 1 万,且粉丝/关注 ≥ 10 |
 | 疑似互粉号 | 关注 ≥ 1,000,粉丝 < 5,000,粉丝/关注在 0.8 到 1.25 之间 |
 | 新号 | 注册不足 90 天 |
@@ -321,6 +323,13 @@ node --test tests/
 ## 免责声明
 
 本项目为个人开源作品,与 X Corp. 无任何关联。质量标签基于公开数据与经验阈值,不代表对任何账号的评价。使用互关清理功能产生的后果由使用者自行承担。
+
+## 致谢
+
+感谢以下开源项目的启发与贡献:
+
+- [yaohongan/x-follower-lens](https://github.com/yaohongan/x-follower-lens) — 提供了粉丝数质量标签与基于账号简介及推文的「内容方向」识别方案。
+- [fengdu2077/x-search-filters](https://github.com/fengdu2077/x-search-filters) — 提供了 X 高级搜索操作符的可视化过滤面板设计与查询构建思路。
 
 ## 许可
 

@@ -78,7 +78,7 @@
   showTab(TABS.includes(saved) ? saved : "tags");
 
   // ---------- 示例数据 ----------
-  const sampleUser = { handle: "snow", followers: 123456, following: 820, tweets: 4321, followedBy: true, iFollow: true, createdAt: "Mon Jan 05 00:00:00 +0000 2015" };
+  const sampleUser = { handle: "snow", bio: "Vibe Coding / Cursor", followers: 123456, following: 820, tweets: 4321, followedBy: true, iFollow: true, createdAt: "Mon Jan 05 00:00:00 +0000 2015" };
   const sampleStat = { views: 200000, interactions: 9000 };
   const tweetAt = (perHour, now) => ({
     id: "s" + perHour, views: Math.round(perHour * 4), likes: 800, retweets: 120, replies: 60, quotes: 4, bookmarks: 90,
@@ -175,8 +175,10 @@
     document.querySelectorAll("[data-depends]").forEach((el) => {
       const off = !settings[el.dataset.depends];
       el.classList.toggle("off", off);
-      el.querySelectorAll("input, button, select").forEach((c) => { c.disabled = off; });
+      el.querySelectorAll("input, button, select, textarea").forEach((c) => { c.disabled = off; });
     });
+    const domTa = document.getElementById("customDomains");
+    if (domTa && document.activeElement !== domTa) domTa.value = settings.customDomains || "";
     document.getElementById("thresholds").dataset.sxaSkin = settings.skin;
     renderPreview(now);
   }
@@ -371,4 +373,19 @@
     }
     save();
   });
+
+  let domTimer = null;
+  const domTa = document.getElementById("customDomains");
+  if (domTa) {
+    domTa.addEventListener("input", (e) => {
+      clearTimeout(domTimer);
+      domTimer = setTimeout(() => {
+        if (!settings) return;
+        settings.customDomains = e.target.value;
+        settings = P.mergeSettings(settings);
+        renderPreview(Date.now());
+        save();
+      }, 300);
+    });
+  }
 })();

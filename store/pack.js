@@ -6,7 +6,7 @@ const { execFileSync } = require("child_process");
 
 const ROOT = path.resolve(__dirname, "..");
 const FILES = [
-  "manifest.json", "background.js", "inject.js", "content.js", "content.css", "following.js",
+  "manifest.json", "background.js", "inject.js", "content.js", "content.css", "following.js", "search.js",
   "popup.html", "popup.css", "popup.js", "LICENSE",
   "lib/aitext.js", "lib/badge.js", "lib/common.js", "lib/i18n.js", "lib/parse.js",
   "icons/icon16.png", "icons/icon32.png", "icons/icon48.png", "icons/icon128.png",
